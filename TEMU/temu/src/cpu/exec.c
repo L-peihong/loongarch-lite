@@ -68,8 +68,8 @@ make_group(_group1_3R,
 	inv, inv, inv, inv,  /* 0x1c  */
 	inv, inv, inv, inv,  /* 0x20  */
         inv, inv, inv, inv,  /* 0x24  */
-        inv, inv, or, inv,   /* 0x28  */
-        inv, inv, inv, inv,  /* 0x2c  */
+        inv, and_w, add_w, or,   /* 0x28：0x28=and_w, 0x29=add_w, 0x2A=or */
+        xor, inv, sll_w, inv,  /* 0x2c：0x2B=xor, 0x2D=sll_w */
         inv, inv, inv, inv,  /* 0x30  */
         inv, inv, inv, inv,  /* 0x34  */
         inv, inv, inv, inv,  /* 0x38  */
@@ -92,14 +92,13 @@ make_group(_group1_3R,
         inv, inv, inv, inv)  /* 0x7c  */
 	
 
-/* TODO: Add more instructions!!! */
-
+/* 所有17条指令已按规范附录B编码注册 */
 op_fun opcode_table [64] = {
 /* 0x00 */	_2byte_esc, inv, inv, inv,
-/* 0x04 */	inv, lu12i_w, inv, inv,
-/* 0x08 */	inv, inv, inv, inv,
-/* 0x0c */	inv, inv, inv, inv,
-/* 0x10 */	inv, inv, inv, inv,
+/* 0x04 */	inv, lu12i_w, inv, pcaddu12i,  /* 0x05=lu12i.w, 0x07=pcaddu12i（I20型） */
+/* 0x08 */	addi_w, andi, xori, sltui,  /* 0x08=addi.w, 0x09=andi, 0x0A=xori, 0x0B=sltui（I12型） */
+/* 0x0c */	ld_b, st_b, ld_w, st_w,  /* 0x0C=ld.b, 0x0D=st.b, 0x0E=ld.w, 0x0F=st.w（I12型访存） */
+/* 0x10 */	beq, bne, inv, bgeu,  /* 0x10=beq, 0x11=bne, 0x13=bgeu（分支型） */
 /* 0x14 */	inv, inv, inv, inv,
 /* 0x18 */	inv, inv, inv, inv,
 /* 0x1c */	inv, inv, inv, inv,
@@ -117,7 +116,7 @@ op_fun _2byte_opcode_table [16] = {
 /* 0x00 */	_group1_3R, inv, inv, inv, 
 /* 0x04 */	inv, inv, inv, inv, 
 /* 0x08 */	inv, inv, inv, inv, 
-/* 0x0c */	inv, inv, ori, inv
+/* 0x0c */	inv, inv, ori, inv  /* 0x0D=ori（I12型） */
 };
 
 
