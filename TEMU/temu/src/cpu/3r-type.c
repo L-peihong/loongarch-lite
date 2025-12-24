@@ -5,23 +5,22 @@
 extern uint32_t instr;
 extern char assembly[80];
 
-/* decode 3R-type instrucion */
+/* decode 3R-type instruction */
 static void decode_3r_type(uint32_t instr) {
+    op_src1->type = OP_TYPE_REG;
+    op_src1->reg  = (instr >> 5) & 0x0000001F;
+    op_src1->val  = reg_w(op_src1->reg);
 
-	op_src1->type = OP_TYPE_REG;
-	op_src1->reg = (instr >> 5) & 0x0000001F;
-	op_src1->val = reg_w(op_src1->reg);
-	
-	op_src2->type = OP_TYPE_REG;
-	op_src2->imm = (instr >> 10) & 0x0000001F;
-	op_src2->val = reg_w(op_src2->reg);
+    /* 修复：op_src2 的寄存器字段需要赋值 */
+    op_src2->type = OP_TYPE_REG;
+    op_src2->reg  = (instr >> 10) & 0x0000001F;
+    op_src2->val  = reg_w(op_src2->reg);
 
-	op_dest->type = OP_TYPE_REG;
-	op_dest->reg = instr & 0x0000001F;
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = instr & 0x0000001F;
 }
 
 /* Helper: extract regs for 3R-type (rd: bits[4:0], rj: bits[9:5], rk: bits[14:10]) */
-/* 注意：这里直接从 instr 取字段（与 decode_3r_type 类似），避免依赖有问题的 decode_3r_type */
 static inline void decode_3r_regs(uint32_t instr, int *rd, int *rj, int *rk) {
     *rj = (instr >> 5) & 0x1F;
     *rk = (instr >> 10) & 0x1F;
@@ -29,10 +28,9 @@ static inline void decode_3r_regs(uint32_t instr, int *rd, int *rj, int *rk) {
 }
 
 make_helper(or) {
-
-	decode_3r_type(instr);
-	reg_w(op_dest->reg) = (op_src1->val | op_src2->val);
-	sprintf(assembly, "or\t%s,\t%s,\t%s", REG_NAME(op_dest->reg), REG_NAME(op_src1->reg), REG_NAME(op_src2->reg));
+    decode_3r_type(instr);
+    reg_w(op_dest->reg) = (op_src1->val | op_src2->val);
+    sprintf(assembly, "or\t%s,\t%s,\t%s", REG_NAME(op_dest->reg), REG_NAME(op_src1->reg), REG_NAME(op_src2->reg));
 }
 
 /* add.w rd, rj, rk */
@@ -71,5 +69,3 @@ make_helper(sll_w) {
     reg_w(rd) = res;
     sprintf(assembly, "sll.w\t%s,\t%s,\t%s", REG_NAME(rd), REG_NAME(rj), REG_NAME(rk));
 }
-
-
