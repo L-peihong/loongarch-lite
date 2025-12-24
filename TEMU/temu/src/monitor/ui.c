@@ -280,12 +280,14 @@ static struct {
 void ui_mainloop() {
     while (1) {
         char *str = rl_gets();
-        if (str == NULL) break;
+        if (str == NULL) { return; }
 
         char *str_end = str + strlen(str);
         char *cmd = strtok(str, " ");
+        
+        // 情况1：空命令
         if (cmd == NULL) {
-            free(str);
+            // free(str); // 【删除】不要释放，rl_gets 会处理
             continue;
         }
 
@@ -295,17 +297,21 @@ void ui_mainloop() {
         int i;
         for (i = 0; i < NR_CMD; i++) {
             if (strcmp(cmd, cmd_table[i].name) == 0) {
+                // 情况2：执行命令（包括 q 退出命令）
                 if (cmd_table[i].handler(args) < 0) {
-                    free(str);
+                    // free(str); // 【删除】即使退出程序也不要手动释放
                     return;
                 }
                 break;
             }
         }
-        if (i == NR_CMD) {
-            printf("Unknown command '%s' (type 'help' for help)\n", cmd);
-        }
 
-        //free(str);
+        if (i == NR_CMD) {
+            printf("Unknown command '%s' (type 'help' for help)", cmd);
+        }
+        
+        // 情况3：循环结束
+        // free(str); // 【删除】绝对不要在这里释放
     }
 }
+
