@@ -32,5 +32,7 @@ static inline int check_reg_index(int index) {
 #define reg_w(index) (cpu.gpr[check_reg_index(index)]._32)
 
 extern const char* regfile[];
+// 新增：添加display_reg函数声明
+extern void display_reg();
 
 #endif

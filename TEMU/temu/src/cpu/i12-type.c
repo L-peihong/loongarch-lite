@@ -38,7 +38,7 @@ make_helper(ori) {
 
 /* addi.w rd, rj, si12 */
 make_helper(addi_w) {
-    uint32_t pc = instr_fetch(0,0); /* 以避免未使用的警告（如果有的话）；实际pc参数由宏提供 */
+    // uint32_t pc = instr_fetch(0,0); /* 以避免未使用的警告（如果有的话）；实际pc参数由宏提供 */
     int rd = instr & 0x1F;
     int rj = (instr >> 5) & 0x1F;
     uint32_t imm12 = (instr >> 10) & 0xFFF;
@@ -129,7 +129,7 @@ make_helper(st_b) {
 
 /* Branches: note make_helper expands to void name(uint32_t pc) */
 make_helper(beq) {
-    uint32_t pc = (uint32_t)/* pc参数由宏提供 */ (0); /* 占位符-宏提供pc */
+    //uint32_t pc = (uint32_t)/* pc参数由宏提供 */ (0); /* 占位符-宏提供pc */
     /* 编译时，实际pc参数在函数范围内可用；在这里，我们只是使用它 */
     int rj = (instr >> 5) & 0x1F;
     int rd = instr & 0x1F;

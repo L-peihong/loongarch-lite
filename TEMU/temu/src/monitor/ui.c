@@ -306,6 +306,6 @@ void ui_mainloop() {
             printf("Unknown command '%s' (type 'help' for help)\n", cmd);
         }
 
-        free(str);
+        //free(str);
     }
 }
