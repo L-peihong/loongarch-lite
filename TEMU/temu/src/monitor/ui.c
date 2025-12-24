@@ -263,11 +263,14 @@ static struct {
     { "help", "Display help message", cmd_help },
     { "c", "Continue program execution", cmd_c },
     { "q", "Exit TEMU", cmd_q },
+    // 基础交互 (si, info, x)
     { "si", "Step N instructions (default: 1)", cmd_si },
     { "info", "Print registers (info r) or watchpoints (info w)", cmd_info },
     { "x", "Dump memory: x N EXPR", cmd_x },
+    //监视点 (w, d)
     { "w", "Set watchpoint: w EXPR", cmd_w },
     { "d", "Delete watchpoint: d N", cmd_d },
+    // 表达式求值 (p)
     { "p", "Evaluate expression: p EXPR", cmd_p },
 };
 
