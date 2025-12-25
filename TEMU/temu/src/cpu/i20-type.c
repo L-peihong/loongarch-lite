@@ -20,6 +20,7 @@ static void decode_i20_type(uint32_t instr) {
 make_helper(lu12i_w) {
 
 	decode_i20_type(instr);
+    op_dest->type = OP_TYPE_REG;
 	reg_w(op_dest->reg) = (op_src2->val << 12);
 	sprintf(assembly, "lu12i.w\t%s,\t0x%04x", REG_NAME(op_dest->reg), op_src2->imm);
 }
@@ -33,6 +34,8 @@ make_helper(pcaddu12i) {
     /* 注：helper 以 make_helper(name) => void name(uint32_t pc) 的形式调用，因此 cpu.pc 当前等于执行前递增的 pc。
      * 我们应将CPU的程序计数器（cpu.pc）作为程序计数器基址。使用cpu.pc（其当前值等于当前程序计数器）.
      */
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
     reg_w(rd) = cpu.pc + (uint32_t)simm;
     sprintf(assembly, "pcaddu12i\t%s,\t0x%05x", REG_NAME(rd), imm20);
 }

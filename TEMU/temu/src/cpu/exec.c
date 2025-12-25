@@ -1,4 +1,4 @@
-#include "helper.h"
+#include "helper.h" 
 #include "all-instr.h"
 
 typedef void (*op_fun)(uint32_t);
@@ -57,39 +57,46 @@ uint32_t instr;
 
 /* group: 3R-type under opcode2 = 0x0 */
 make_group(_group1_3R,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, and_w, add_w, or,
-        xor, inv, sll_w, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-	inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-	inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv
+    /* 0x00 */ inv, inv, inv, inv,
+    /* 0x04 */ inv, inv, inv, inv,
+    /* 0x08 */ inv, inv, inv, inv,
+    /* 0x0c */ inv, inv, inv, inv,
+    /* 0x10 */ inv, inv, inv, inv,
+    /* 0x14 */ inv, inv, inv, inv,
+    /* 0x18 */ inv, inv, inv, inv,
+    /* 0x1c */ inv, inv, inv, inv,
+
+    /* 0x20 */ add_w, inv, inv, inv,
+    /* 0x24 */ inv, and_w, inv,  inv,
+    /* 0x28 */ xor, inv, or, inv,
+    /* 0x2c */ inv, inv, inv, inv,
+
+    /* 0x30 */ inv, inv, inv, inv,
+    /* 0x34 */ inv, inv, inv, inv,
+    /* 0x38 */ inv, inv, inv, inv,
+    /* 0x3c */ inv, inv, inv, inv,
+
+    /* 0x40 */ inv, inv, inv, inv,
+    /* 0x44 */ inv, inv, inv, inv,
+    /* 0x48 */ inv, inv, inv, inv,
+    /* 0x4c */ inv, inv, inv, inv,
+
+    /* 0x50 */ inv, inv, inv, inv,
+    /* 0x54 */ inv, inv, inv, inv,
+    /* 0x58 */ inv, inv, inv, inv,
+    /* 0x5c */ inv, inv, inv, inv,
+
+    /* 0x60 */ inv, inv, inv, inv,
+    /* 0x64 */ inv, inv, inv, inv,
+    /* 0x68 */ inv, inv, inv, inv,
+    /* 0x6c */ inv, inv, inv, inv,
+
+    /* 0x70 */ inv, inv, inv, inv,
+    /* 0x74 */ inv, inv, inv, inv,
+    /* 0x78 */ inv, inv, inv, inv,
+    /* 0x7c */ inv, inv, inv, inv
 );
+
 
 /* group: I12 immediate arithmetic/logical under opcode2 = 0xA
  * From your runtime decode:
@@ -97,7 +104,7 @@ make_group(_group1_3R,
  */
 make_group(_group_i12_imm,
 	inv, inv, inv, inv,
-	inv, inv, inv, inv,
+	inv, inv, inv, andi,
 	inv, inv, inv, inv,
 	inv, inv, inv, inv,
 	/* 0x10 */ addi_w, inv, inv, inv,
@@ -156,7 +163,7 @@ op_fun _2byte_opcode_table [16] = {
 /* 0x0 */	_group1_3R, inv, inv, inv,
 /* 0x4 */	inv, inv, inv, inv,
 /* 0x8 */	inv, inv, _group_i12_imm, inv,  /* 0xA -> I12 immediate group */
-/* 0xC */	inv, inv, ori, inv
+/* 0xC */	inv, _group_i12_imm, ori, inv
 };
 
 make_helper(exec) {
@@ -169,3 +176,4 @@ static make_helper(_2byte_esc) {
 	ops_decoded.opcode2 = (instr >> 22) & 0xF;
 	_2byte_opcode_table[ops_decoded.opcode2](pc);
 }
+

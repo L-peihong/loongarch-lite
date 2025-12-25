@@ -1,0 +1,7 @@
+spawn ./build/temu logic
+Welcome to TEMU!
+The executable is logic.
+For help, type "help"
+(temu) si 1; info r; q
+       0:   1c 00 00 24         pcaddu12i	a0,	0x00001
+(temu) 

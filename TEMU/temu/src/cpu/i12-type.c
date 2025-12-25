@@ -42,6 +42,8 @@ make_helper(addi_w) {
     int rj = (instr >> 5) & 0x1F;
     uint32_t imm12 = (instr >> 10) & 0xFFF;
     int32_t simm = signext12(imm12);
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
     reg_w(rd) = reg_w(rj) + (uint32_t)simm;
     sprintf(assembly, "addi.w	%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), imm12);
 }
@@ -51,6 +53,8 @@ make_helper(andi) {
     int rd = instr & 0x1F;
     int rj = (instr >> 5) & 0x1F;
     uint32_t ui12 = (instr >> 10) & 0xFFF;
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd; 
     reg_w(rd) = reg_w(rj) & ui12;
     sprintf(assembly, "andi	%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), ui12);
 }
@@ -60,6 +64,8 @@ make_helper(xori) {
     int rd = instr & 0x1F;
     int rj = (instr >> 5) & 0x1F;
     uint32_t ui12 = (instr >> 10) & 0xFFF;
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
     reg_w(rd) = reg_w(rj) ^ ui12;
     sprintf(assembly, "xori	%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), ui12);
 }
@@ -72,6 +78,8 @@ make_helper(sltui) {
     int32_t simm = signext12(imm12);
     uint32_t lhs = reg_w(rj);
     uint32_t rhs = (uint32_t)simm;
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
     reg_w(rd) = (lhs < rhs) ? 1 : 0;
     sprintf(assembly, "sltui	%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), imm12);
 }

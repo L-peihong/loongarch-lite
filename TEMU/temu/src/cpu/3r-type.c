@@ -40,6 +40,8 @@ make_helper(add_w) {
     uint32_t v1 = reg_w(rj);
     uint32_t v2 = reg_w(rk);
     uint32_t res = v1 + v2;
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
     reg_w(rd) = res;
     sprintf(assembly, "add.w\t%s,\t%s,\t%s", REG_NAME(rd), REG_NAME(rj), REG_NAME(rk));
 }
@@ -48,6 +50,8 @@ make_helper(add_w) {
 make_helper(and_w) {
     int rd, rj, rk;
     decode_3r_regs(instr, &rd, &rj, &rk);
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
     reg_w(rd) = reg_w(rj) & reg_w(rk);
     sprintf(assembly, "and\t%s,\t%s,\t%s", REG_NAME(rd), REG_NAME(rj), REG_NAME(rk));
 }
@@ -56,6 +60,8 @@ make_helper(and_w) {
 make_helper(xor) {
     int rd, rj, rk;
     decode_3r_regs(instr, &rd, &rj, &rk);
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
     reg_w(rd) = reg_w(rj) ^ reg_w(rk);
     sprintf(assembly, "xor\t%s,\t%s,\t%s", REG_NAME(rd), REG_NAME(rj), REG_NAME(rk));
 }
@@ -66,6 +72,8 @@ make_helper(sll_w) {
     decode_3r_regs(instr, &rd, &rj, &rk);
     uint32_t sh = reg_w(rk) & 0x1F;
     uint32_t res = reg_w(rj) << sh;
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
     reg_w(rd) = res;
     sprintf(assembly, "sll.w\t%s,\t%s,\t%s", REG_NAME(rd), REG_NAME(rj), REG_NAME(rk));
 }
