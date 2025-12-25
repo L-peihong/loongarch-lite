@@ -68,8 +68,8 @@ make_group(_group1_3R,
 
     /* 0x20 */ add_w, inv, inv, inv,
     /* 0x24 */ inv, and_w, inv,  inv,
-    /* 0x28 */ xor, inv, or, inv,
-    /* 0x2c */ inv, inv, inv, inv,
+    /* 0x28 */ inv, inv, or, xor,
+    /* 0x2c */ inv, inv, sll_w, inv,
 
     /* 0x30 */ inv, inv, inv, inv,
     /* 0x34 */ inv, inv, inv, inv,
@@ -105,7 +105,7 @@ make_group(_group1_3R,
 make_group(_group_i12_imm,
 	inv, inv, inv, inv,
 	inv, inv, inv, andi,
-	inv, inv, inv, inv,
+	sltui, inv, inv, inv,
 	inv, inv, inv, inv,
 	/* 0x10 */ addi_w, inv, inv, inv,
 	inv, inv, inv, inv,
@@ -137,15 +137,51 @@ make_group(_group_i12_imm,
         inv, inv, inv, inv
 );
 
+/* group: I12 load/store instructions (ld/w, st/w, ld/b, st/b) */
+make_group(_group_i12_loadstore,
+    /* 0x00 */ st_w,    inv,    inv,    inv,    // opcode3=0x00: st.w（匹配报错的 st.w 指令）
+    /* 0x04 */ ld_w,    st_b,   ld_b,   inv,    // opcode3=0x04: ld.w; 0x05: st.b; 0x06: ld.b
+    /* 0x08 */ inv,   inv,  inv,    inv,    
+    /* 0x0c */ inv,    inv,    inv,    inv,    // 预留 opcode3=0x0c~0x0f
+    /* 0x10 */ inv,    inv,    inv,    inv,
+    /* 0x14 */ inv,    inv,    inv,    inv,
+    /* 0x18 */ inv,    inv,    inv,    inv,
+    /* 0x1c */ inv,    inv,    inv,    inv,
+    /* 0x20 */ inv,    inv,    inv,    inv,
+    /* 0x24 */ inv,    inv,    inv,    inv,
+    /* 0x28 */ inv,    inv,    inv,    inv,
+    /* 0x2c */ inv,    inv,    inv,    inv,
+    /* 0x30 */ inv,    inv,    inv,    inv,
+    /* 0x34 */ inv,    inv,    inv,    inv,
+    /* 0x38 */ inv,    inv,    inv,    inv,
+    /* 0x3c */ inv,    inv,    inv,    inv,
+    /* 0x40 */ inv,    inv,    inv,    inv,
+    /* 0x44 */ inv,    inv,    inv,    inv,
+    /* 0x48 */ inv,    inv,    inv,    inv,
+    /* 0x4c */ inv,    inv,    inv,    inv,
+    /* 0x50 */ inv,    inv,    inv,    inv,
+    /* 0x54 */ inv,    inv,    inv,    inv,
+    /* 0x58 */ inv,    inv,    inv,    inv,
+    /* 0x5c */ inv,    inv,    inv,    inv,
+    /* 0x60 */ inv,    inv,    inv,    inv,
+    /* 0x64 */ inv,    inv,    inv,    inv,
+    /* 0x68 */ inv,    inv,    inv,    inv,
+    /* 0x6c */ inv,    inv,    inv,    inv,
+    /* 0x70 */ inv,    inv,    inv,    inv,
+    /* 0x74 */ inv,    inv,    inv,    inv,
+    /* 0x78 */ inv,    inv,    inv,    inv,
+    /* 0x7c */ inv,    inv,    inv,    inv     // opcode3=0x7f
+);
+
 /* main opcode table: instr[31:26] */
 op_fun opcode_table [64] = {
         /* 0x00 */	_2byte_esc, inv, inv, inv,
         /* 0x04 */	inv, lu12i_w, inv, pcaddu12i,
-        /* 0x08 */	inv, inv, inv, inv,
+        /* 0x08 */	inv, inv, _group_i12_loadstore, inv,
         /* 0x0c */	ld_b, st_b, ld_w, st_w,
-        /* 0x10 */	inv, inv, inv, inv,          /* 原先这里放 beq/bne/bgeu，但与你环境编码不符 */
-        /* 0x14 */	inv, inv, beq, inv,          /* 0x16 = beq（由 instr=0x58000885 推导） */
-        /* 0x18 */	inv, inv, inv, inv,
+        /* 0x10 */	inv, inv, inv, inv,          
+        /* 0x14 */	inv, inv, beq, bne,          /* 0x16 = beq（由 instr=0x58000885 推导） */
+        /* 0x18 */	inv, inv, inv, bgeu,
         /* 0x1c */	inv, inv, inv, inv,
         /* 0x20 */	temu_trap, inv, inv, inv,
         /* 0x24 */	inv, inv, inv, inv,
@@ -162,7 +198,7 @@ op_fun opcode_table [64] = {
 op_fun _2byte_opcode_table [16] = {
 /* 0x0 */	_group1_3R, inv, inv, inv,
 /* 0x4 */	inv, inv, inv, inv,
-/* 0x8 */	inv, inv, _group_i12_imm, inv,  /* 0xA -> I12 immediate group */
+/* 0x8 */	inv, _group_i12_imm, _group_i12_imm, _group_i12_imm,  /* 0xA -> I12 immediate group */
 /* 0xC */	inv, _group_i12_imm, ori, inv
 };
 

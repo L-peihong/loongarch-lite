@@ -1,3 +1,0 @@
-       0:   03 87 fc 04         ori	a0,	zero,	0x1ff
-       4:   03 43 c0 85         andi	a1,	a0,	0x0f0
-       8:   80 00 00 00         andi	a1,	a0,	0x0f0
