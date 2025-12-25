@@ -7,7 +7,6 @@ static make_helper(_2byte_esc);
 Operands ops_decoded;
 uint32_t instr;
 
-
 #define make_group(name, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10, item11, item12, item13, item14, item15, \
 		   item16, item17, item18, item19, item20, item21, item22, item23, item24, item25, item26, item27, item28, item29, item30, item31, \
 		   item32, item33, item34, item35, item36, item37, item38, item39, item40, item41, item42, item43, item44, item45, item46, item47, \
@@ -30,7 +29,7 @@ uint32_t instr;
         /* 0x28 */      item40, item41, item42, item43, \
         /* 0x2c */      item44, item45, item46, item47, \
         /* 0x30 */      item48, item49, item50, item51, \
-        /* 0x34 */      item52, item53, item54, item54, \
+        /* 0x34 */      item52, item53, item54, item55, \
         /* 0x38 */      item56, item57, item58, item59, \
         /* 0x3c */      item60, item61, item62, item63, \
 	/* 0x40 */      item64, item65, item66, item67, \
@@ -51,74 +50,114 @@ uint32_t instr;
         /* 0x7c */      item124, item125, item126, item127 \
 	}; \
 	static make_helper(name) { \
-		ops_decoded.opcode3 = (instr << 10) >> 25; \
+		/* use instr[21:15] as 7-bit selector */ \
+		ops_decoded.opcode3 = (instr >> 15) & 0x7F; \
 		return concat(opcode_table_, name)[ops_decoded.opcode3](pc); \
 	}
 
-	
-/* 0x00 */
+/* group: 3R-type under opcode2 = 0x0 */
 make_group(_group1_3R,
-	inv, inv, inv, inv,  /* 0x00  */ 
-	inv, inv, inv, inv,  /* 0x04  */
-	inv, inv, inv, inv,  /* 0x08  */
-	inv, inv, inv, inv,  /* 0x0c  */
-	inv, inv, inv, inv,  /* 0x10  */
-	inv, inv, inv, inv,  /* 0x14  */
-	inv, inv, inv, inv,  /* 0x18  */
-	inv, inv, inv, inv,  /* 0x1c  */
-	inv, inv, inv, inv,  /* 0x20  */
-        inv, inv, inv, inv,  /* 0x24  */
-        inv, and_w, add_w, or,   /* 0x28：0x28=and_w, 0x29=add_w, 0x2A=or */
-        xor, inv, sll_w, inv,  /* 0x2c：0x2B=xor, 0x2D=sll_w */
-        inv, inv, inv, inv,  /* 0x30  */
-        inv, inv, inv, inv,  /* 0x34  */
-        inv, inv, inv, inv,  /* 0x38  */
-        inv, inv, inv, inv,  /* 0x3c  */
-	inv, inv, inv, inv,  /* 0x40  */
-        inv, inv, inv, inv,  /* 0x44  */
-        inv, inv, inv, inv,  /* 0x48  */
-        inv, inv, inv, inv,  /* 0x4c  */
-        inv, inv, inv, inv,  /* 0x50  */
-        inv, inv, inv, inv,  /* 0x54  */
-        inv, inv, inv, inv,  /* 0x58  */
-        inv, inv, inv, inv,  /* 0x5c  */
-	inv, inv, inv, inv,  /* 0x60  */
-        inv, inv, inv, inv,  /* 0x64  */
-        inv, inv, inv, inv,  /* 0x68  */
-        inv, inv, inv, inv,  /* 0x6c  */
-        inv, inv, inv, inv,  /* 0x70  */
-        inv, inv, inv, inv,  /* 0x74  */
-        inv, inv, inv, inv,  /* 0x78  */
-        inv, inv, inv, inv)  /* 0x7c  */
-	
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, and_w, add_w, or,
+        xor, inv, sll_w, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+	inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+	inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv
+);
 
-/* 所有17条指令已按规范附录B编码注册 */
+/* group: I12 immediate arithmetic/logical under opcode2 = 0xA
+ * From your runtime decode:
+ *   addi.w has opcode1=0x00, opcode2=0xA, opcode3=0x10
+ */
+make_group(_group_i12_imm,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	/* 0x10 */ addi_w, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+	inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+	inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+	inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv,
+        inv, inv, inv, inv
+);
+
+/* main opcode table: instr[31:26] */
 op_fun opcode_table [64] = {
-/* 0x00 */	_2byte_esc, inv, inv, inv,
-/* 0x04 */	inv, lu12i_w, inv, pcaddu12i,  /* 0x05=lu12i.w, 0x07=pcaddu12i（I20型） */
-/* 0x08 */	addi_w, andi, xori, sltui,  /* 0x08=addi.w, 0x09=andi, 0x0A=xori, 0x0B=sltui（I12型） */
-/* 0x0c */	ld_b, st_b, ld_w, st_w,  /* 0x0C=ld.b, 0x0D=st.b, 0x0E=ld.w, 0x0F=st.w（I12型访存） */
-/* 0x10 */	beq, bne, inv, bgeu,  /* 0x10=beq, 0x11=bne, 0x13=bgeu（分支型） */
-/* 0x14 */	inv, inv, inv, inv,
-/* 0x18 */	inv, inv, inv, inv,
-/* 0x1c */	inv, inv, inv, inv,
-/* 0x20 */	temu_trap, inv, inv, inv,
-/* 0x24 */	inv, inv, inv, inv,
-/* 0x28 */	inv, inv, inv, inv,
-/* 0x2c */	inv, inv, inv, inv,
-/* 0x30 */	inv, inv, inv, inv,
-/* 0x34 */	inv, inv, inv, inv,
-/* 0x38 */	inv, inv, inv, inv,
-/* 0x3c */	inv, inv, inv, inv
-};
+        /* 0x00 */	_2byte_esc, inv, inv, inv,
+        /* 0x04 */	inv, lu12i_w, inv, pcaddu12i,
+        /* 0x08 */	inv, inv, inv, inv,
+        /* 0x0c */	ld_b, st_b, ld_w, st_w,
+        /* 0x10 */	inv, inv, inv, inv,          /* 原先这里放 beq/bne/bgeu，但与你环境编码不符 */
+        /* 0x14 */	inv, inv, beq, inv,          /* 0x16 = beq（由 instr=0x58000885 推导） */
+        /* 0x18 */	inv, inv, inv, inv,
+        /* 0x1c */	inv, inv, inv, inv,
+        /* 0x20 */	temu_trap, inv, inv, inv,
+        /* 0x24 */	inv, inv, inv, inv,
+        /* 0x28 */	inv, inv, inv, inv,
+        /* 0x2c */	inv, inv, inv, inv,
+        /* 0x30 */	inv, inv, inv, inv,
+        /* 0x34 */	inv, inv, inv, inv,
+        /* 0x38 */	inv, inv, inv, inv,
+        /* 0x3c */	inv, inv, inv, inv
+        };
+        
 
+/* 2-byte escape sub-opcode table: instr[25:22] */
 op_fun _2byte_opcode_table [16] = {
-/* 0x00 */	_group1_3R, inv, inv, inv, 
-/* 0x04 */	inv, inv, inv, inv, 
-/* 0x08 */	inv, inv, inv, inv, 
-/* 0x0c */	inv, inv, ori, inv  /* 0x0D=ori（I12型） */
+/* 0x0 */	_group1_3R, inv, inv, inv,
+/* 0x4 */	inv, inv, inv, inv,
+/* 0x8 */	inv, inv, _group_i12_imm, inv,  /* 0xA -> I12 immediate group */
+/* 0xC */	inv, inv, ori, inv
 };
-
 
 make_helper(exec) {
 	instr = instr_fetch(pc, 4);
@@ -127,6 +166,6 @@ make_helper(exec) {
 }
 
 static make_helper(_2byte_esc) {
-	ops_decoded.opcode2 = ((instr << 6) & 0xF0000000) >> 28;
-	_2byte_opcode_table[ops_decoded.opcode2](pc); 
+	ops_decoded.opcode2 = (instr >> 22) & 0xF;
+	_2byte_opcode_table[ops_decoded.opcode2](pc);
 }

@@ -40,7 +40,7 @@ static inline int skip_golden_trace(uint32_t opcode1) {
 }
 
 /* 输出 Golden Trace */
-static inline void dump_golden_trace(uint32_t pc) {
+static inline void dump_golden_trace(uint32_t arch_pc) {
     init_golden_trace();
 
     /* 只关心写寄存器的指令 */
@@ -56,7 +56,7 @@ static inline void dump_golden_trace(uint32_t pc) {
 
     fprintf(golden_fp,
             "pc=0x%08x reg=%d value=0x%08x\n",
-            pc, reg, val);
+            arch_pc, reg, val);
     fflush(golden_fp);
 }
 
@@ -85,25 +85,26 @@ void cpu_exec(volatile uint32_t n) {
 
     if (n == RUN_FOREVER) {
         while (temu_state == RUNNING) {
-            uint32_t pc = cpu.pc & 0x7FFFFFFF;
+            uint32_t arch_pc = cpu.pc;
+            uint32_t pc = arch_pc & 0x7FFFFFFF;
 
 #ifdef DEBUG
             if ((n_temp & 0xffff) == 0) fputc('.', stderr);
 #endif
             exec(pc);
 
-            /* ===== Golden Trace（关键位置）===== */
-            dump_golden_trace(cpu.pc);
-            /* =================================== */
+            /* ===== Golden Trace：记录本条指令的架构 PC ===== */
+            dump_golden_trace(arch_pc);
+            /* =========================================== */
 
             cpu.pc += 4;
 
 #ifdef DEBUG
             print_bin_instr(pc);
             strcat(asm_buf, assembly);
-            Log_write("%s\n", asm_buf);
+            Log_write("%s", asm_buf);
             if (n_temp < MAX_INSTR_TO_PRINT) {
-                printf("%s\n", asm_buf);
+                printf("%s", asm_buf);
             }
 #endif
             if (!check_wp()) {
@@ -114,26 +115,26 @@ void cpu_exec(volatile uint32_t n) {
         }
     } else {
         for (; n > 0; n--) {
-            uint32_t pc = cpu.pc & 0x7FFFFFFF;
+            uint32_t arch_pc = cpu.pc;
+            uint32_t pc = arch_pc & 0x7FFFFFFF;
 
 #ifdef DEBUG
             if ((n & 0xffff) == 0) fputc('.', stderr);
 #endif
             exec(pc);
 
-            /* ===== Golden Trace（关键位置）===== */
-            dump_golden_trace(cpu.pc);
-            /* =================================== */
+            /* ===== Golden Trace：记录本条指令的架构 PC ===== */
+            dump_golden_trace(arch_pc);
+            /* =========================================== */
 
             cpu.pc += 4;
-            
 
 #ifdef DEBUG
             print_bin_instr(pc);
             strcat(asm_buf, assembly);
-            Log_write("%s\n", asm_buf);
+            Log_write("%s", asm_buf);
             if (n_temp < MAX_INSTR_TO_PRINT) {
-                printf("%s\n", asm_buf);
+                printf("%s", asm_buf);
             }
 #endif
             if (!check_wp()) {
