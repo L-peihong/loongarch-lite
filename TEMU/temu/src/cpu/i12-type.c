@@ -100,7 +100,7 @@ make_helper(sltui) {
         REG_NAME(rj), rj_val, ui12, REG_NAME(rd), result);
 }
 
-/* ====================== st.w 修复 ====================== */
+/* ====================== st.w 修复（含调试） ====================== */
 make_helper(st_w) {
     int rd = instr & 0x1F;    /* 源寄存器：待存储的值 */
     int rj = (instr >> 5) & 0x1F; /* 基址寄存器 */
@@ -109,18 +109,42 @@ make_helper(st_w) {
     uint32_t vaddr = reg_w(rj) + (uint32_t)simm;
     uint32_t paddr = vaddr & 0x7FFFFFFF;
 
-    /* 1. 地址对齐检查（st.w 需 4 字节自然对齐） */
+    /* 对齐检查（st.w 需 4 字节对齐） */
     if (!check_alignment(vaddr, 4)) {
         panic("st.w: unaligned address 0x%08x (not 4-byte aligned)", vaddr);
     }
 
-    /* 2. 核心语义：将 GR[rd] 的 32 位值写入内存（完整实现） */
+    /* 调试日志：写前信息 */
+    Log("ST.W: rd=%s(%d)=0x%08x  rj=%s(%d)=0x%08x imm12=0x%03x simm=%d vaddr=0x%08x paddr=0x%08x",
+        REG_NAME(rd), rd, reg_w(rd), REG_NAME(rj), rj, reg_w(rj), imm12, simm, vaddr, paddr);
+
+    /* 核心写操作（使用现有接口） */
     mem_write(paddr, 4, reg_w(rd));
+
+    /* 立刻读回以验证（使用 mem_read） */
+    {
+        uint32_t back = mem_read(paddr, 4);
+        Log("ST.W: after mem_write mem_read(0x%08x,4) = 0x%08x", paddr, back);
+    }
+
+    /* 诊断性：直接访问底层 hw_mem（仅用于定位问题，非长期代码） */
+#ifdef DEBUG
+    {
+        extern uint8_t *hw_mem; /* memory.h -> extern */
+        /* 仅当 paddr 在物理内存范围内时才直接访问 */
+        if (paddr < HW_MEM_SIZE) {
+            uint32_t direct = *(uint32_t *)(hw_mem + paddr);
+            Log("ST.W: direct hw_mem read at paddr=0x%08x -> 0x%08x", paddr, direct);
+        } else {
+            Log("ST.W: paddr 0x%08x out of HW_MEM_SIZE (%u)", paddr, HW_MEM_SIZE);
+        }
+    }
+#endif
 
     sprintf(assembly, "st.w\t%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), imm12);
 }
 
-/* ====================== ld.w 修复 ====================== */
+/* ====================== ld.w 修复（含调试） ====================== */
 make_helper(ld_w) {
     int rd = instr & 0x1F;    /* 目标寄存器：存储读取的值 */
     int rj = (instr >> 5) & 0x1F; /* 基址寄存器 */
@@ -129,54 +153,60 @@ make_helper(ld_w) {
     uint32_t vaddr = reg_w(rj) + (uint32_t)simm;
     uint32_t paddr = vaddr & 0x7FFFFFFF;
 
-    /* 1. 地址对齐检查（ld.w 需 4 字节自然对齐） */
     if (!check_alignment(vaddr, 4)) {
         panic("ld.w: unaligned address 0x%08x (not 4-byte aligned)", vaddr);
     }
 
-    /* 2. 核心语义：从内存读取 32 位值到 GR[rd] */
+    Log("LD.W: rd=%s(%d) rj=%s(%d)=0x%08x imm12=0x%03x simm=%d vaddr=0x%08x paddr=0x%08x",
+        REG_NAME(rd), rd, REG_NAME(rj), rj, reg_w(rj), imm12, simm, vaddr, paddr);
+
     reg_w(rd) = mem_read(paddr, 4);
+
+    Log("LD.W: result reg %s(%d) = 0x%08x", REG_NAME(rd), rd, reg_w(rd));
 
     sprintf(assembly, "ld.w\t%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), imm12);
 }
 
-/* ====================== st.b 修复 ====================== */
+/* ====================== st.b 修复（含调试） ====================== */
 make_helper(st_b) {
-    int rd = instr & 0x1F;    /* 源寄存器：待存储的低8位值 */
+    int rd = instr & 0x1F;    /* 源寄存器：低8位待存储 */
     int rj = (instr >> 5) & 0x1F; /* 基址寄存器 */
     uint32_t imm12 = (instr >> 10) & 0xFFF;
     int32_t simm = signext12(imm12);
     uint32_t vaddr = reg_w(rj) + (uint32_t)simm;
     uint32_t paddr = vaddr & 0x7FFFFFFF;
 
-    /* 1. 地址对齐检查（st.b 是字节访问，自然对齐永远成立，无需报错） */
-    (void)check_alignment(vaddr, 1); /* 占位，符合架构规范 */
+    /* 字节访问天然对齐；记录日志 */
+    Log("ST.B: rd=%s(%d)=0x%08x rj=%s(%d)=0x%08x imm12=0x%03x vaddr=0x%08x paddr=0x%08x",
+        REG_NAME(rd), rd, reg_w(rd), REG_NAME(rj), rj, reg_w(rj), imm12, vaddr, paddr);
 
-    /* 2. 核心语义：将 GR[rd] 的低 8 位写入内存 */
     mem_write(paddr, 1, reg_w(rd) & 0xFF);
+
+    {
+        uint32_t back = mem_read(paddr, 1) & 0xFF;
+        Log("ST.B: after mem_write mem_read(0x%08x,1) = 0x%02x", paddr, back);
+    }
 
     sprintf(assembly, "st.b\t%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), imm12);
 }
 
-/* ====================== ld.b 修复 ====================== */
+/* ====================== ld.b 修复（含调试） ====================== */
 make_helper(ld_b) {
-    int rd = instr & 0x1F;    /* 目标寄存器：存储符号扩展后的值 */
+    int rd = instr & 0x1F;    /* 目标寄存器：符号扩展后写回 */
     int rj = (instr >> 5) & 0x1F; /* 基址寄存器 */
     uint32_t imm12 = (instr >> 10) & 0xFFF;
     int32_t simm = signext12(imm12);
     uint32_t vaddr = reg_w(rj) + (uint32_t)simm;
     uint32_t paddr = vaddr & 0x7FFFFFFF;
 
-    /* 1. 地址对齐检查（ld.b 是字节访问，自然对齐永远成立） */
-    (void)check_alignment(vaddr, 1); /* 占位，符合架构规范 */
+    Log("LD.B: rd=%s(%d) rj=%s(%d)=0x%08x imm12=0x%03x vaddr=0x%08x paddr=0x%08x",
+        REG_NAME(rd), rd, REG_NAME(rj), rj, reg_w(rj), imm12, vaddr, paddr);
 
-    /* 2. 核心语义：读取 8 位值并符号扩展到 32 位 */
-    uint32_t b = mem_read(paddr, 1) & 0xFF; /* 读取原始字节 */
-    if (b & 0x80) { /* 符号位为1，扩展为32位负数 */
-        reg_w(rd) = (uint32_t)(0xFFFFFF00 | b);
-    } else { /* 符号位为0，扩展为32位正数 */
-        reg_w(rd) = b;
-    }
+    uint32_t b = mem_read(paddr, 1) & 0xFF;
+    if (b & 0x80) reg_w(rd) = (uint32_t)(0xFFFFFF00 | b);
+    else reg_w(rd) = b;
+
+    Log("LD.B: result reg %s(%d) = 0x%08x", REG_NAME(rd), rd, reg_w(rd));
 
     sprintf(assembly, "ld.b\t%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), imm12);
 }

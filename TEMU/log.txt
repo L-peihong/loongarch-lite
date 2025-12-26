@@ -1,0 +1,4 @@
+       0:   03 84 00 04         ori	a0,	zero,	0x100
+       4:   03 83 fc 05         ori	a1,	zero,	0x0ff
+       8:   6c 00 08 85         bgeu	a0,	a1,	0x0002
+      14:   80 00 00 00         bgeu	a0,	a1,	0x0002

@@ -11,3 +11,4 @@ _start:
 label1:
     ori         $a2, $zero, 0x1    # 预期a2=1
     HIT_GOOD_TRAP
+

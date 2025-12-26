@@ -98,32 +98,40 @@ static void ddr3_write(uint32_t addr, void *data, uint8_t *mask) {
 }
 
 uint32_t dram_read(uint32_t addr, size_t len) {
-	uint32_t offset = addr & BURST_MASK;
-	uint8_t temp[2 * BURST_LEN];
-	
-	ddr3_read(addr, temp);
+    uint32_t offset = addr & BURST_MASK;
+    uint8_t temp[2 * BURST_LEN];
 
-	if(offset + len > BURST_LEN) {
-		/* data cross the burst boundary */
-		ddr3_read(addr + BURST_LEN, temp + BURST_LEN);
-	}
+    ddr3_read(addr, temp);
+    if (offset + len > BURST_LEN) {
+        ddr3_read(addr + BURST_LEN, temp + BURST_LEN);
+    }
 
-	return unalign_rw(temp + offset, 4);
+    uint8_t *p = temp + offset;
+    uint32_t val = 0;
+    for (size_t i = 0; i < len; i++) {
+        val |= ((uint32_t)p[i]) << (8 * i);
+    }
+    return val;
 }
 
 void dram_write(uint32_t addr, size_t len, uint32_t data) {
-	uint32_t offset = addr & BURST_MASK;
-	uint8_t temp[2 * BURST_LEN];
-	uint8_t mask[2 * BURST_LEN];
-	memset(mask, 0, 2 * BURST_LEN);
+    uint32_t offset = addr & BURST_MASK;
+    uint8_t temp[2 * BURST_LEN];
+    uint8_t mask[2 * BURST_LEN];
 
-	*(uint32_t *)(temp + offset) = data;
-	memset(mask + offset, 1, len);
+    memset(temp, 0, sizeof(temp));
+    memset(mask, 0, sizeof(mask));
 
-	ddr3_write(addr, temp, mask);
+    for (size_t i = 0; i < len; i++) {
+        temp[offset + i] = (data >> (8 * i)) & 0xFF;
+        mask[offset + i] = 1;
+    }
 
-	if(offset + len > BURST_LEN) {
-		/* data cross the burst boundary */
-		ddr3_write(addr + BURST_LEN, temp + BURST_LEN, mask + BURST_LEN);
-	}
+    ddr3_write(addr, temp, mask);
+    if (offset + len > BURST_LEN) {
+        ddr3_write(addr + BURST_LEN,
+                   temp + BURST_LEN,
+                   mask + BURST_LEN);
+    }
 }
+

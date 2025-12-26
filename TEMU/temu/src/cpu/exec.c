@@ -137,48 +137,56 @@ make_group(_group_i12_imm,
         inv, inv, inv, inv
 );
 
-/* group: I12 load/store instructions (ld/w, st/w, ld/b, st/b) */
-make_group(_group_i12_loadstore,
-    /* 0x00 */ st_w,    inv,    inv,    inv,    // opcode3=0x00: st.w（匹配报错的 st.w 指令）
-    /* 0x04 */ ld_w,    st_b,   ld_b,   inv,    // opcode3=0x04: ld.w; 0x05: st.b; 0x06: ld.b
-    /* 0x08 */ inv,   inv,  inv,    inv,    
-    /* 0x0c */ inv,    inv,    inv,    inv,    // 预留 opcode3=0x0c~0x0f
-    /* 0x10 */ inv,    inv,    inv,    inv,
-    /* 0x14 */ inv,    inv,    inv,    inv,
-    /* 0x18 */ inv,    inv,    inv,    inv,
-    /* 0x1c */ inv,    inv,    inv,    inv,
-    /* 0x20 */ inv,    inv,    inv,    inv,
-    /* 0x24 */ inv,    inv,    inv,    inv,
-    /* 0x28 */ inv,    inv,    inv,    inv,
-    /* 0x2c */ inv,    inv,    inv,    inv,
-    /* 0x30 */ inv,    inv,    inv,    inv,
-    /* 0x34 */ inv,    inv,    inv,    inv,
-    /* 0x38 */ inv,    inv,    inv,    inv,
-    /* 0x3c */ inv,    inv,    inv,    inv,
-    /* 0x40 */ inv,    inv,    inv,    inv,
-    /* 0x44 */ inv,    inv,    inv,    inv,
-    /* 0x48 */ inv,    inv,    inv,    inv,
-    /* 0x4c */ inv,    inv,    inv,    inv,
-    /* 0x50 */ inv,    inv,    inv,    inv,
-    /* 0x54 */ inv,    inv,    inv,    inv,
-    /* 0x58 */ inv,    inv,    inv,    inv,
-    /* 0x5c */ inv,    inv,    inv,    inv,
-    /* 0x60 */ inv,    inv,    inv,    inv,
-    /* 0x64 */ inv,    inv,    inv,    inv,
-    /* 0x68 */ inv,    inv,    inv,    inv,
-    /* 0x6c */ inv,    inv,    inv,    inv,
-    /* 0x70 */ inv,    inv,    inv,    inv,
-    /* 0x74 */ inv,    inv,    inv,    inv,
-    /* 0x78 */ inv,    inv,    inv,    inv,
-    /* 0x7c */ inv,    inv,    inv,    inv     // opcode3=0x7f
-);
+/* group: I12 load/store instructions
+ * 核心：按机器码反推的真实 opcode3 绑定！
+ */
+/* group: I12 load/store instructions
+ * 核心修改：不用opcode3，改用instr[31]区分load/store（st.w=1，ld.w=0）
+ */
+/* group: I12 load/store instructions
+ * 核心修改：仅保留区分load/store的关键逻辑，删除未使用变量
+ */
+/* group: I12 load/store instructions
+ * 支持 st.w/st.b/ld.w/ld.b 四类指令
+ * 核心判断逻辑：
+ * 1. 最低3位区分 load/store：
+ *    - store（存储）：最低3位 = 0x4（st.w）、0x0（st.b）
+ *    - load（加载）：最低3位 = 0x7（ld.w）、0x3（ld.b）
+ * 2. 最低3位细分 字/字节 操作
+ */
+static make_helper(_group_i12_loadstore) {
+    // 提取核心区分位：opcode2（bits[25:22]），完全匹配你给出的10位特征位
+    uint32_t opcode2 = (instr >> 22) & 0xF; // 关键修正：提取bits25-22，共4位
+
+    // 严格按你给出的特征位匹配指令
+    switch (opcode2) {
+        case 0x6: // st.w（特征位0110）
+            st_w(pc);
+            break;
+        case 0x4: // st.b（特征位0100）
+            st_b(pc);
+            break;
+        case 0x2: // ld.w（特征位0010）
+            ld_w(pc);
+            break;
+        case 0x0: // ld.b（特征位0000）
+            ld_b(pc);
+            break;
+        default: // 非法指令
+            inv(pc);
+            break;
+    }
+    return;
+}
+
+
 
 /* main opcode table: instr[31:26] */
 op_fun opcode_table [64] = {
         /* 0x00 */	_2byte_esc, inv, inv, inv,
         /* 0x04 */	inv, lu12i_w, inv, pcaddu12i,
         /* 0x08 */	inv, inv, _group_i12_loadstore, inv,
-        /* 0x0c */	ld_b, st_b, ld_w, st_w,
+        /* 0x0c */	inv, inv, inv, inv,
         /* 0x10 */	inv, inv, inv, inv,          
         /* 0x14 */	inv, inv, beq, bne,          /* 0x16 = beq（由 instr=0x58000885 推导） */
         /* 0x18 */	inv, inv, inv, bgeu,
