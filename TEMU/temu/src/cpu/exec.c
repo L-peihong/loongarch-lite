@@ -1,4 +1,4 @@
-#include "helper.h" 
+#include "helper.h"
 #include "all-instr.h"
 
 typedef void (*op_fun)(uint32_t);
@@ -7,6 +7,7 @@ static make_helper(_2byte_esc);
 Operands ops_decoded;
 uint32_t instr;
 
+/* 定义 make_group 宏，用于生成函数指针数组 */
 #define make_group(name, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10, item11, item12, item13, item14, item15, \
 		   item16, item17, item18, item19, item20, item21, item22, item23, item24, item25, item26, item27, item28, item29, item30, item31, \
 		   item32, item33, item34, item35, item36, item37, item38, item39, item40, item41, item42, item43, item44, item45, item46, item47, \
@@ -50,12 +51,16 @@ uint32_t instr;
         /* 0x7c */      item124, item125, item126, item127 \
 	}; \
 	static make_helper(name) { \
-		/* use instr[21:15] as 7-bit selector */ \
+		/* 使用 instr[21:15] 作为 3R-type 的 7位 Opcode3 */ \
 		ops_decoded.opcode3 = (instr >> 15) & 0x7F; \
 		return concat(opcode_table_, name)[ops_decoded.opcode3](pc); \
 	}
 
-/* group: 3R-type under opcode2 = 0x0 */
+/* 
+ * Group 1: 3R-type instructions
+ * Opcode1 = 0x00, Opcode2 = 0x0
+ * 根据 Opcode3 (instr[21:15]) 进行分发
+ */
 make_group(_group1_3R,
     /* 0x00 */ inv, inv, inv, inv,
     /* 0x04 */ inv, inv, inv, inv,
@@ -66,10 +71,10 @@ make_group(_group1_3R,
     /* 0x18 */ inv, inv, inv, inv,
     /* 0x1c */ inv, inv, inv, inv,
 
-    /* 0x20 */ add_w, inv, inv, inv,
-    /* 0x24 */ inv, and_w, inv,  inv,
-    /* 0x28 */ inv, inv, or, xor,
-    /* 0x2c */ inv, inv, sll_w, inv,
+    /* 0x20 */ add_w, inv, inv, inv,     /* 0x20: add.w */
+    /* 0x24 */ inv,   inv, inv,  inv,    
+    /* 0x28 */ inv,   inv,  or,   xor,   /* 0x2a: or, 0x2b: xor */
+    /* 0x2c */ inv,   inv,  sll_w, inv,  /* 0x2e: sll.w */
 
     /* 0x30 */ inv, inv, inv, inv,
     /* 0x34 */ inv, inv, inv, inv,
@@ -97,117 +102,67 @@ make_group(_group1_3R,
     /* 0x7c */ inv, inv, inv, inv
 );
 
-
-/* group: I12 immediate arithmetic/logical under opcode2 = 0xA
- * From your runtime decode:
- *   addi.w has opcode1=0x00, opcode2=0xA, opcode3=0x10
- */
-make_group(_group_i12_imm,
-	inv, inv, inv, inv,
-	inv, inv, inv, andi,
-	sltui, inv, inv, inv,
-	inv, inv, inv, inv,
-	/* 0x10 */ addi_w, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-	inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-	inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-	inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv,
-        inv, inv, inv, inv
-);
-
-/* group: I12 load/store instructions
- * 核心：按机器码反推的真实 opcode3 绑定！
- */
-/* group: I12 load/store instructions
- * 核心修改：不用opcode3，改用instr[31]区分load/store（st.w=1，ld.w=0）
- */
-/* group: I12 load/store instructions
- * 核心修改：仅保留区分load/store的关键逻辑，删除未使用变量
- */
-/* group: I12 load/store instructions
- * 支持 st.w/st.b/ld.w/ld.b 四类指令
- * 核心判断逻辑：
- * 1. 最低3位区分 load/store：
- *    - store（存储）：最低3位 = 0x4（st.w）、0x0（st.b）
- *    - load（加载）：最低3位 = 0x7（ld.w）、0x3（ld.b）
- * 2. 最低3位细分 字/字节 操作
+/* 
+ * Group: I12 Load/Store instructions
+ * Opcode1 = 0xA
+ * 根据 Opcode2 (instr[25:22]) 进行分发
  */
 static make_helper(_group_i12_loadstore) {
-    // 提取核心区分位：opcode2（bits[25:22]），完全匹配你给出的10位特征位
-    uint32_t opcode2 = (instr >> 22) & 0xF; // 关键修正：提取bits25-22，共4位
+    uint32_t opcode2 = (instr >> 22) & 0xF; 
 
-    // 严格按你给出的特征位匹配指令
     switch (opcode2) {
-        case 0x6: // st.w（特征位0110）
+        case 0x6: // st.w
             st_w(pc);
             break;
-        case 0x4: // st.b（特征位0100）
+        case 0x4: // st.b
             st_b(pc);
             break;
-        case 0x2: // ld.w（特征位0010）
+        case 0x2: // ld.w
             ld_w(pc);
             break;
-        case 0x0: // ld.b（特征位0000）
+        case 0x0: // ld.b
             ld_b(pc);
             break;
-        default: // 非法指令
+        default:
             inv(pc);
             break;
     }
     return;
 }
 
-
-
-/* main opcode table: instr[31:26] */
-op_fun opcode_table [64] = {
-        /* 0x00 */	_2byte_esc, inv, inv, inv,
-        /* 0x04 */	inv, lu12i_w, inv, pcaddu12i,
-        /* 0x08 */	inv, inv, _group_i12_loadstore, inv,
-        /* 0x0c */	inv, inv, inv, inv,
-        /* 0x10 */	inv, inv, inv, inv,          
-        /* 0x14 */	inv, inv, beq, bne,          /* 0x16 = beq（由 instr=0x58000885 推导） */
-        /* 0x18 */	inv, inv, inv, bgeu,
-        /* 0x1c */	inv, inv, inv, inv,
-        /* 0x20 */	temu_trap, inv, inv, inv,
-        /* 0x24 */	inv, inv, inv, inv,
-        /* 0x28 */	inv, inv, inv, inv,
-        /* 0x2c */	inv, inv, inv, inv,
-        /* 0x30 */	inv, inv, inv, inv,
-        /* 0x34 */	inv, inv, inv, inv,
-        /* 0x38 */	inv, inv, inv, inv,
-        /* 0x3c */	inv, inv, inv, inv
-        };
-        
-
-/* 2-byte escape sub-opcode table: instr[25:22] */
+/* 
+ * 2-byte Opcode Table
+ * 入口条件: Opcode1 = 0x00
+ * 根据 Opcode2 (instr[25:22]) 进行分发
+ */
 op_fun _2byte_opcode_table [16] = {
-/* 0x0 */	_group1_3R, inv, inv, inv,
-/* 0x4 */	inv, inv, inv, inv,
-/* 0x8 */	inv, _group_i12_imm, _group_i12_imm, _group_i12_imm,  /* 0xA -> I12 immediate group */
-/* 0xC */	inv, _group_i12_imm, ori, inv
+    /* 0x0 */	_group1_3R, inv, inv, inv,
+    /* 0x4 */	inv, inv, inv, inv,
+    /* 0x8 */	inv, sltui, addi_w, inv,    /* 0x8: inv, 0x9: sltui, 0xA: addi.w */
+    /* 0xC */	inv, andi, ori, inv         /* 0xD: andi, 0xE: ori */
+};
+
+/* 
+ * Main Opcode Table
+ * 根据 Opcode1 (instr[31:26]) 进行分发
+ */
+op_fun opcode_table [64] = {
+/* 0x00 */	_2byte_esc, inv, inv, inv,
+/* 0x04 */	inv, lu12i_w, inv, pcaddu12i, /* 0x05: lu12i.w, 0x07: pcaddu12i */
+/* 0x08 */	inv, inv, _group_i12_loadstore, inv, /* 0x0A: load/store group */
+/* 0x0c */	inv, inv, inv, inv,
+/* 0x10 */	inv, inv, inv, inv,
+/* 0x14 */	inv, inv, beq, bne,           /* 0x16: beq, 0x17: bne */
+/* 0x18 */	inv, inv, inv, bgeu,          /* 0x1B: bgeu */
+/* 0x1c */	inv, inv, inv, inv,
+/* 0x20 */	temu_trap, inv, inv, inv,     /* 0x20: TEMU trap */
+/* 0x24 */	inv, inv, inv, inv,
+/* 0x28 */	inv, inv, inv, inv,
+/* 0x2c */	inv, inv, inv, inv,
+/* 0x30 */	inv, inv, inv, inv,
+/* 0x34 */	inv, inv, inv, inv,
+/* 0x38 */	inv, inv, inv, inv,
+/* 0x3c */	inv, inv, inv, inv
 };
 
 make_helper(exec) {
@@ -220,4 +175,3 @@ static make_helper(_2byte_esc) {
 	ops_decoded.opcode2 = (instr >> 22) & 0xF;
 	_2byte_opcode_table[ops_decoded.opcode2](pc);
 }
-
