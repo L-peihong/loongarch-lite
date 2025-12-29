@@ -13,91 +13,85 @@ static bool check_alignment(uint32_t vaddr, size_t n) {
 /* decode I12-type instrucion with unsigned immediate */
 static void decode_ui12_type(uint32_t instr) {
 
-	op_src1->type = OP_TYPE_REG;
-	op_src1->reg = (instr >> 5) & 0x0000001F;
-	op_src1->val = reg_w(op_src1->reg);
+    op_src1->type = OP_TYPE_REG;
+    op_src1->reg = (instr >> 5) & 0x1F;
+    op_src1->val = reg_w(op_src1->reg);
 
-	op_src2->type = OP_TYPE_IMM;
-	op_src2->imm = (instr >> 10) & 0x00000FFF;
-	op_src2->val = op_src2->imm;
+    op_src2->type = OP_TYPE_IMM;
+    op_src2->imm = (instr >> 10) & 0xFFF;
+    op_src2->val = op_src2->imm;
 
-	op_dest->type = OP_TYPE_REG;
-	op_dest->reg = instr & 0x0000001F;
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg = instr & 0x1F;
 }
 
 static inline int32_t signext12(uint32_t imm12) {
     if (imm12 & 0x800) return (int32_t)(imm12 | 0xFFFFF000);
     return (int32_t)imm12;
 }
+
 static inline int32_t signext16(uint32_t imm16) {
     if (imm16 & 0x8000) return (int32_t)(imm16 | 0xFFFF0000);
     return (int32_t)imm16;
 }
 
-make_helper(ori) {
-
-	decode_ui12_type(instr);
-	reg_w(op_dest->reg) = op_src1->val | op_src2->val;
-	sprintf(assembly, "ori	%s,\t%s,\t0x%03x", REG_NAME(op_dest->reg), REG_NAME(op_src1->reg), op_src2->imm);
+/* ====================== 关键修复：14-bit 分支立即数 ====================== */
+static inline int32_t signext14(uint32_t imm14) {
+    if (imm14 & 0x2000)   // bit13 是符号位
+        return (int32_t)(imm14 | 0xFFFFC000);
+    return (int32_t)imm14;
 }
 
-/* addi.w rd, rj, si12 */
+/* ====================== 算术 / 逻辑指令 ====================== */
+
+make_helper(ori) {
+    decode_ui12_type(instr);
+    reg_w(op_dest->reg) = op_src1->val | op_src2->val;
+    sprintf(assembly, "ori\t%s,\t%s,\t0x%03x",
+            REG_NAME(op_dest->reg),
+            REG_NAME(op_src1->reg),
+            op_src2->imm);
+}
+
 make_helper(addi_w) {
     int rd = instr & 0x1F;
     int rj = (instr >> 5) & 0x1F;
     uint32_t imm12 = (instr >> 10) & 0xFFF;
     int32_t simm = signext12(imm12);
-    op_dest->type = OP_TYPE_REG;
-    op_dest->reg  = rd;
     reg_w(rd) = reg_w(rj) + (uint32_t)simm;
-    sprintf(assembly, "addi.w	%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), imm12);
+    sprintf(assembly, "addi.w\t%s,\t%s,\t0x%03x",
+            REG_NAME(rd), REG_NAME(rj), imm12);
 }
 
-/* andi rd, rj, ui12 */
 make_helper(andi) {
     int rd = instr & 0x1F;
     int rj = (instr >> 5) & 0x1F;
     uint32_t ui12 = (instr >> 10) & 0xFFF;
-    op_dest->type = OP_TYPE_REG;
-    op_dest->reg  = rd; 
     reg_w(rd) = reg_w(rj) & ui12;
-    sprintf(assembly, "andi	%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), ui12);
+    sprintf(assembly, "andi\t%s,\t%s,\t0x%03x",
+            REG_NAME(rd), REG_NAME(rj), ui12);
 }
 
-/* xori rd, rj, ui12 */
 make_helper(xori) {
     int rd = instr & 0x1F;
     int rj = (instr >> 5) & 0x1F;
     uint32_t ui12 = (instr >> 10) & 0xFFF;
-    op_dest->type = OP_TYPE_REG;
-    op_dest->reg  = rd;
     reg_w(rd) = reg_w(rj) ^ ui12;
-    sprintf(assembly, "xori	%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), ui12);
+    sprintf(assembly, "xori\t%s,\t%s,\t0x%03x",
+            REG_NAME(rd), REG_NAME(rj), ui12);
 }
 
-/* sltui rd, rj, si12  -- immediate is sign-extended, compare unsigned */
-/* sltui rd, rj, ui12  -- 无符号比较：rj < ui12 → rd=1，否则0 */
+/* ====================== sltui ====================== */
+
 make_helper(sltui) {
-    // 正确解析字段：rd=bits4-0, rj=bits9-5, ui12=bits21-10（无符号12位）
     int rd = instr & 0x1F;
     int rj = (instr >> 5) & 0x1F;
-    uint32_t ui12 = (instr >> 10) & 0xFFF;  // sltui是无符号立即数，无需符号扩展
-    
-    // 核心：无符号比较（LoongArch sltui 定义为无符号）
-    uint32_t rj_val = reg_w(rj);
-    uint32_t result = (rj_val < ui12) ? 1 : 0;
-    
-    // 写回目标寄存器
-    op_dest->type = OP_TYPE_REG;
-    op_dest->reg  = rd;
-    reg_w(rd) = result;
-    
-    // 打印汇编指令
-    sprintf(assembly, "sltui\t%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), ui12);
-    
-    // 调试日志（可选）
-    Log("sltui: rj(%s)=0x%08x < ui12=0x%03x → rd(%s)=0x%08x", 
-        REG_NAME(rj), rj_val, ui12, REG_NAME(rd), result);
+    uint32_t ui12 = (instr >> 10) & 0xFFF;
+
+    reg_w(rd) = (reg_w(rj) < ui12) ? 1 : 0;
+
+    sprintf(assembly, "sltui\t%s,\t%s,\t0x%03x",
+            REG_NAME(rd), REG_NAME(rj), ui12);
 }
 
 /* ====================== st.w 修复（含调试） ====================== */
@@ -211,59 +205,55 @@ make_helper(ld_b) {
     sprintf(assembly, "ld.b\t%s,\t%s,\t0x%03x", REG_NAME(rd), REG_NAME(rj), imm12);
 }
 
-/*
- * Branch format used in this lab:
- * - rj: bits[9:5]
- * - rd: bits[4:0]
- * - offs16: bits[25:10]
- *
- * LoongArch branch target:
- *   target = pc + 4 + (signext(offs16) << 2)
- *
- * Note: cpu-exec.c will do cpu.pc += 4 after exec(pc).
- * To keep that structure unchanged, we set cpu.pc to (target - 4) here.
- */
-
 make_helper(beq) {
     int rj = (instr >> 5) & 0x1F;
     int rd = instr & 0x1F;
-    uint32_t offs16 = (instr >> 10) & 0xFFFF;
-    int32_t simm = signext16(offs16);
+
+    uint32_t offs14 = (instr >> 10) & 0x3FFF;
+    int32_t simm = signext14(offs14);
     int32_t branch_off = simm << 2;
-    uint32_t target = pc + 4 + (uint32_t)branch_off;
+    uint32_t target = pc + 4 + branch_off;
 
     if (reg_w(rj) == reg_w(rd)) {
         cpu.pc = target - 4;
     }
-    sprintf(assembly, "beq	%s,\t%s,\t0x%04x", REG_NAME(rj), REG_NAME(rd), offs16);
+
+    sprintf(assembly, "beq\t%s,\t%s,\t0x%04x",
+            REG_NAME(rj), REG_NAME(rd), offs14);
 }
 
 make_helper(bne) {
     int rj = (instr >> 5) & 0x1F;
     int rd = instr & 0x1F;
-    uint32_t offs16 = (instr >> 10) & 0xFFFF;
-    int32_t simm = signext16(offs16);
+
+    uint32_t offs14 = (instr >> 10) & 0x3FFF;
+    int32_t simm = signext14(offs14);
     int32_t branch_off = simm << 2;
-    uint32_t target = pc + 4 + (uint32_t)branch_off;
+    uint32_t target = pc + 4 + branch_off;
 
     if (reg_w(rj) != reg_w(rd)) {
         cpu.pc = target - 4;
     }
-    sprintf(assembly, "bne	%s,\t%s,\t0x%04x", REG_NAME(rj), REG_NAME(rd), offs16);
+
+    sprintf(assembly, "bne\t%s,\t%s,\t0x%04x",
+            REG_NAME(rj), REG_NAME(rd), offs14);
 }
 
 make_helper(bgeu) {
     int rj = (instr >> 5) & 0x1F;
     int rd = instr & 0x1F;
-    uint32_t offs16 = (instr >> 10) & 0xFFFF;
-    int32_t simm = signext16(offs16);
+
+    uint32_t offs14 = (instr >> 10) & 0x3FFF;
+    int32_t simm = signext14(offs14);
     int32_t branch_off = simm << 2;
-    uint32_t target = pc + 4 + (uint32_t)branch_off;
+    uint32_t target = pc + 4 + branch_off;
 
     if ((uint32_t)reg_w(rj) >= (uint32_t)reg_w(rd)) {
         cpu.pc = target - 4;
     }
-    sprintf(assembly, "bgeu	%s,\t%s,\t0x%04x", REG_NAME(rj), REG_NAME(rd), offs16);
+
+    sprintf(assembly, "bgeu\t%s,\t%s,\t0x%04x",
+            REG_NAME(rj), REG_NAME(rd), offs14);
 }
 
 
