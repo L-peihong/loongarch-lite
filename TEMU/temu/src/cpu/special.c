@@ -30,5 +30,7 @@ make_helper(temu_trap) {
 
 	printf("\33[1;31mtemu: HIT GOOD TRAP\33[0m at $pc = 0x%08x\n", cpu.pc);
 
+	/* 仅设置结束状态，后续由 cpu_exec 统一处理 */
 	temu_state = END;
 }
+

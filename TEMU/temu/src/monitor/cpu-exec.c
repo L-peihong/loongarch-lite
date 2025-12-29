@@ -31,7 +31,7 @@ static inline void init_golden_trace() {
 static inline void dump_golden_trace(uint32_t arch_pc) {
     init_golden_trace();
 
-    /* 只有本条指令真实写寄存器时才记录 */
+    /* 只有真实写寄存器的指令才记录 */
     if (ops_decoded.dest.type != OP_TYPE_REG)
         return;
 
@@ -71,18 +71,28 @@ void cpu_exec(volatile uint32_t n) {
         uint32_t arch_pc = cpu.pc;
         uint32_t pc = arch_pc & 0x7FFFFFFF;
 
-        /* 关键修复：清空译码状态，避免残留 dest */
+        /* 清空译码状态，避免残留 */
         memset(&ops_decoded, 0, sizeof(ops_decoded));
 
 #ifdef DEBUG
         if ((n & 0xffff) == 0) fputc('.', stderr);
 #endif
 
+        /* 执行一条指令 */
         exec(pc);
 
-        /* Golden Trace：使用本条指令真实写回结果 */
+        /* ================== 关键修复 ==================
+         * 一旦 HIT_GOOD_TRAP，立刻终止本轮
+         * 不做 Golden Trace，不推进 PC，不打印反汇编
+         */
+        if (temu_state == END) {
+            break;
+        }
+
+        /* Golden Trace */
         dump_golden_trace(arch_pc);
 
+        /* 正常推进 PC */
         cpu.pc += 4;
 
 #ifdef DEBUG
@@ -103,4 +113,5 @@ void cpu_exec(volatile uint32_t n) {
     if (temu_state == RUNNING)
         temu_state = STOP;
 }
+
 
