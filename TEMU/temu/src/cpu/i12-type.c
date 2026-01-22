@@ -58,8 +58,12 @@ make_helper(addi_w) {
     int rj = (instr >> 5) & 0x1F;
     uint32_t imm12 = (instr >> 10) & 0xFFF;
     int32_t simm = signext12(imm12);
+
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
+
     reg_w(rd) = reg_w(rj) + (uint32_t)simm;
-    sprintf(assembly, "addi.w\t%s,\t%s,\t0x%03x",
+    sprintf(assembly, "addi.w	%s,\t%s,\t0x%03x",
             REG_NAME(rd), REG_NAME(rj), imm12);
 }
 
@@ -67,8 +71,12 @@ make_helper(andi) {
     int rd = instr & 0x1F;
     int rj = (instr >> 5) & 0x1F;
     uint32_t ui12 = (instr >> 10) & 0xFFF;
+
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
+
     reg_w(rd) = reg_w(rj) & ui12;
-    sprintf(assembly, "andi\t%s,\t%s,\t0x%03x",
+    sprintf(assembly, "andi	%s,\t%s,\t0x%03x",
             REG_NAME(rd), REG_NAME(rj), ui12);
 }
 
@@ -86,13 +94,18 @@ make_helper(xori) {
 make_helper(sltui) {
     int rd = instr & 0x1F;
     int rj = (instr >> 5) & 0x1F;
-    uint32_t ui12 = (instr >> 10) & 0xFFF;
+    uint32_t imm12 = (instr >> 10) & 0xFFF;
 
-    reg_w(rd) = (reg_w(rj) < ui12) ? 1 : 0;
+    /* Golden Trace：这是一次寄存器写回 */
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
 
-    sprintf(assembly, "sltui\t%s,\t%s,\t0x%03x",
-            REG_NAME(rd), REG_NAME(rj), ui12);
+    reg_w(rd) = (reg_w(rj) < imm12);
+
+    sprintf(assembly, "sltui	%s,\t%s,\t0x%03x",
+            REG_NAME(rd), REG_NAME(rj), imm12);
 }
+
 
 /* ====================== st.w 修复（含调试） ====================== */
 make_helper(st_w) {
@@ -210,50 +223,62 @@ make_helper(beq) {
     int rd = instr & 0x1F;
 
     uint32_t offs14 = (instr >> 10) & 0x3FFF;
-    int32_t simm = signext14(offs14);
-    int32_t branch_off = simm << 2;
-    uint32_t target = pc + 4 + branch_off;
+
+    /* offs14 << 2 后再符号扩展 */
+    int32_t branch_off = (int32_t)((offs14 << 2) << 16) >> 16;
+
+    uint32_t arch_pc = cpu.pc;
+    uint32_t target  = arch_pc + branch_off;   // 没有 +4
 
     if (reg_w(rj) == reg_w(rd)) {
+        /* 抵消外层 cpu.pc += 4 */
         cpu.pc = target - 4;
     }
 
-    sprintf(assembly, "beq\t%s,\t%s,\t0x%04x",
+    sprintf(assembly, "beq	%s,\t%s,\t0x%04x",
             REG_NAME(rj), REG_NAME(rd), offs14);
 }
+
+
 
 make_helper(bne) {
     int rj = (instr >> 5) & 0x1F;
     int rd = instr & 0x1F;
 
     uint32_t offs14 = (instr >> 10) & 0x3FFF;
-    int32_t simm = signext14(offs14);
-    int32_t branch_off = simm << 2;
-    uint32_t target = pc + 4 + branch_off;
+    int32_t branch_off = (int32_t)((offs14 << 2) << 16) >> 16;
+
+    uint32_t arch_pc = cpu.pc;
+    uint32_t target  = arch_pc + branch_off;
 
     if (reg_w(rj) != reg_w(rd)) {
         cpu.pc = target - 4;
     }
 
-    sprintf(assembly, "bne\t%s,\t%s,\t0x%04x",
+    sprintf(assembly, "bne	%s,\t%s,\t0x%04x",
             REG_NAME(rj), REG_NAME(rd), offs14);
 }
+
+
 
 make_helper(bgeu) {
     int rj = (instr >> 5) & 0x1F;
     int rd = instr & 0x1F;
 
     uint32_t offs14 = (instr >> 10) & 0x3FFF;
-    int32_t simm = signext14(offs14);
-    int32_t branch_off = simm << 2;
-    uint32_t target = pc + 4 + branch_off;
+    int32_t branch_off = (int32_t)((offs14 << 2) << 16) >> 16;
+
+    uint32_t arch_pc = cpu.pc;
+    uint32_t target  = arch_pc + branch_off;
 
     if ((uint32_t)reg_w(rj) >= (uint32_t)reg_w(rd)) {
         cpu.pc = target - 4;
     }
 
-    sprintf(assembly, "bgeu\t%s,\t%s,\t0x%04x",
+    sprintf(assembly, "bgeu	%s,\t%s,\t0x%04x",
             REG_NAME(rj), REG_NAME(rd), offs14);
 }
+
+
 
 

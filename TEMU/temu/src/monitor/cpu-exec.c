@@ -31,18 +31,28 @@ static inline void init_golden_trace() {
 static inline void dump_golden_trace(uint32_t arch_pc) {
     init_golden_trace();
 
-    /* 只有真实写寄存器的指令才记录 */
+    /* 只考虑寄存器目的操作数 */
     if (ops_decoded.dest.type != OP_TYPE_REG)
         return;
 
     int reg = ops_decoded.dest.reg;
-    uint32_t val = reg_w(reg);
+
+    /* 关键修复：
+     * r0 永远不记录
+     * 这样可以同时过滤：
+     *  - branch
+     *  - store
+     *  - trap
+     *  - 未设置 dest 的指令
+     */
+    if (reg == 0)
+        return;
 
     fprintf(golden_fp,
             "pc=0x%08x reg=%d value=0x%08x\n",
-            arch_pc, reg, val);
-    fflush(golden_fp);
+            arch_pc, reg, reg_w(reg));
 }
+
 
 /* ================================================= */
 
@@ -113,5 +123,8 @@ void cpu_exec(volatile uint32_t n) {
     if (temu_state == RUNNING)
         temu_state = STOP;
 }
+
+
+
 
 
