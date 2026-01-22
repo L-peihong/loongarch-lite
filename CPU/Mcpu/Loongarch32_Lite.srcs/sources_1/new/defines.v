@@ -10,8 +10,8 @@
 `define ALUOP_BUS       7:0                 // 执行阶段aluop_o宽度（8位）
 `define SHIFT_ENABLE    1'b1                // 移位指令使能
 `define ALUTYPE_BUS     2:0                 // 执行阶段alutype_o宽度（3位）
-`define TRUE_V          1'b1                // 逻辑“真”
-`define FALSE_V         1'b0                // 逻辑“假”
+`define TRUE_V          1'b1                // 逻辑"真"
+`define FALSE_V         1'b0                // 逻辑"假"
 `define WORD_BUS        31:0                // 32位数据总线
 `define DOUBLE_REG_BUS  63:0                // 双寄存器总线（用于乘法等）
 `define RT_ENABLE       1'b1                // rt选择使能
@@ -39,10 +39,10 @@
 `define LoongArch32_SLL             8'h11    // sll.w
 `define LoongArch32_ADD_W           8'h18    // add.w
 `define LoongArch32_ADDI_W          8'h19    // addi.w
-`define LoongArch32_OR              8'h1A    // or
+`define LoongArch32_OR              8'h2A    // or (修复: 0x2A而不是0x1A)
 `define LoongArch32_ORI             8'h1D    // ori
 `define LoongArch32_ANDI            8'h1C    // andi
-`define LoongArch32_XOR             8'h1E    // xor
+`define LoongArch32_XOR             8'h2B    // xor (修复: 0x2B而不是0x1E)
 `define LoongArch32_SLTU            8'h27    // sltui
 `define LoongArch32_BEQ             8'h46    // beq
 `define LoongArch32_BNE             8'h47    // bne

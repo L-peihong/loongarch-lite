@@ -17,21 +17,23 @@ module Loongarch32_Lite(
     output wire [`REG_ADDR_BUS]  debug_wb_rf_wnum,
     output wire [`WORD_BUS]      debug_wb_rf_wdata
 );
-    // 内部信号定义
-    // IF阶段信号
+    // 内部信号定义（修正声明顺序：先声明后使用）
+    // 1. 阶段输出信号（先声明，避免使用前未定义警告）
+    wire [`REG_BUS]       exe_wd_o;           // 执行阶段写回数据
+    wire [`REG_BUS]       mem_dreg_o;         // 访存阶段写回数据
+    wire [`REG_BUS]       wb_wd_o;           // 写回阶段写回数据
+    // 2. IF阶段信号
     wire [`INST_ADDR_BUS] pc;
     wire [`INST_ADDR_BUS] branch_target;
     wire                  branch_valid;
     wire                  stall;
     wire                  flush;
     wire [`INST_ADDR_BUS] debug_wb_pc_if, debug_wb_pc_id, debug_wb_pc_exe, debug_wb_pc_mem;
-
-    // IF/ID寄存器信号
+    // 3. IF/ID寄存器信号
     wire [`INST_ADDR_BUS] id_pc;
     wire [`INST_BUS]      id_inst;
     wire [`INST_ADDR_BUS] id_debug_wb_pc;
-
-    // ID阶段信号
+    // 4. ID阶段信号
     wire [`ALUTYPE_BUS]   id_alutype;
     wire [`ALUOP_BUS]     id_aluop;
     wire [`REG_ADDR_BUS]  id_wa;
@@ -45,12 +47,11 @@ module Loongarch32_Lite(
     wire [`REG_BUS]       rd2;
     wire [1:0]            forward_sel1;
     wire [1:0]            forward_sel2;
-    // 前推数据源（EXE/MEM/WB）
+    // 5. 前推数据源（EXE/MEM/WB）
     wire [`REG_BUS]       forward_data_exe = exe_wd_o;
     wire [`REG_BUS]       forward_data_mem = mem_dreg_o;
     wire [`REG_BUS]       forward_data_wb = wb_wd_o;
-
-    // ID/EXE寄存器信号
+    // 6. ID/EXE寄存器信号
     wire [`ALUTYPE_BUS]   exe_alutype;
     wire [`ALUOP_BUS]     exe_aluop;
     wire [`REG_BUS]       exe_src1;
@@ -59,18 +60,15 @@ module Loongarch32_Lite(
     wire                  exe_wreg;
     wire [`INST_ADDR_BUS] exe_debug_wb_pc;
     wire [`INST_ADDR_BUS] exe_branch_target;
-
-    // EXE阶段信号
+    // 7. EXE阶段信号
     wire [`ALUOP_BUS]     exe_aluop_o;
     wire [`REG_ADDR_BUS]  exe_wa_o;
     wire                  exe_wreg_o;
-    wire [`REG_BUS]       exe_wd_o;
     wire [`REG_BUS]       exe_mem_addr_o;
     wire [`REG_BUS]       exe_mem_wdata_o;
     wire                  exe_mem_we_o;
     wire [1:0]            exe_mem_sel_o;
-
-    // EXE/MEM寄存器信号
+    // 8. EXE/MEM寄存器信号
     wire [`ALUOP_BUS]     mem_aluop;
     wire [`REG_ADDR_BUS]  mem_wa;
     wire                  mem_wreg;
@@ -80,22 +78,17 @@ module Loongarch32_Lite(
     wire                  mem_mem_we;
     wire [1:0]            mem_mem_sel;
     wire [`INST_ADDR_BUS] mem_debug_wb_pc;
-
-    // MEM阶段信号
+    // 9. MEM阶段信号
     wire [`REG_ADDR_BUS]  mem_wa_o;
     wire                  mem_wreg_o;
-    wire [`REG_BUS]       mem_dreg_o;
-
-    // MEM/WB寄存器信号
+    // 10. MEM/WB寄存器信号
     wire [`REG_ADDR_BUS]  wb_wa;
     wire                  wb_wreg;
     wire [`REG_BUS]       wb_dreg;
     wire [`INST_ADDR_BUS] wb_debug_wb_pc;
-
-    // WB阶段信号
+    // 11. WB阶段信号
     wire [`REG_ADDR_BUS]  wb_wa_o;
     wire                  wb_wreg_o;
-    wire [`REG_BUS]       wb_wd_o;
 
     // 1. 实例化取指阶段模块
     if_stage if_stage0(
@@ -156,7 +149,7 @@ module Loongarch32_Lite(
         .flush_o(flush)
     );
 
-    // 5. 实例化解码阶段模块（连接前推数据源）
+    // 5. 实例化解码阶段模块（修正3R型指令操作数前推）
     id_stage id_stage0(
         .cpu_clk_50M(cpu_clk_50M),
         .cpu_rst_n(cpu_rst_n),
@@ -227,6 +220,7 @@ module Loongarch32_Lite(
         .exe_branch_valid_o(branch_valid),
         .debug_wb_pc(debug_wb_pc_exe)
     );
+
     assign branch_target = exe_branch_target;
 
     // 8. 实例化EXE/MEM流水线寄存器
