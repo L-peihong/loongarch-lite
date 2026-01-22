@@ -1,94 +1,149 @@
 `include "defines.v"
-
 module id_stage(
+    input  wire                  cpu_clk_50M,
+    input  wire                  cpu_rst_n,
+    // æ¥è‡ªIF/IDå¯„å­˜å™¨çš„ä¿¡å·
+    input  wire [`INST_ADDR_BUS] id_pc_i,           // è§£ç é˜¶æ®µPCå€¼
+    input  wire [`INST_ADDR_BUS] id_debug_wb_pc_i,  // è°ƒè¯•PCå€¼
+    input  wire [`INST_BUS]      id_inst_i,         // å¾…è§£ç æŒ‡ä»¤
+    // æ¥è‡ªå¯„å­˜å™¨å †çš„ä¿¡å·
+    input  wire [`REG_BUS]       rd1,               // è¯»ç«¯å£1æ•°æ®ï¼ˆrs1ï¼‰
+    input  wire [`REG_BUS]       rd2,               // è¯»ç«¯å£2æ•°æ®ï¼ˆrs2ï¼‰
+    // æ¥è‡ªå‰æ¨å•å…ƒçš„ä¿¡å·ï¼ˆæ•°æ®å‰æ¨ï¼šEXE/MEM/WBé˜¶æ®µç»“æœï¼‰
+    input  wire [`REG_BUS]       forward_data_exe,  // EXEé˜¶æ®µå‰æ¨æ•°æ®ï¼ˆæœ€é«˜ä¼˜å…ˆçº§ï¼‰
+    input  wire [`REG_BUS]       forward_data_mem,  // MEMé˜¶æ®µå‰æ¨æ•°æ®
+    input  wire [`REG_BUS]       forward_data_wb,   // WBé˜¶æ®µå‰æ¨æ•°æ®
+    input  wire [1:0]            forward_sel1_i,    // rs1å‰æ¨é€‰æ‹©ä¿¡å·
+    input  wire [1:0]            forward_sel2_i,    // rs2/rdå‰æ¨é€‰æ‹©ä¿¡å·
+    // è¾“å‡ºåˆ°ID/EXEå¯„å­˜å™¨çš„ä¿¡å·
+    output wire [`ALUTYPE_BUS]   id_alutype_o,      // æŒ‡ä»¤ç±»å‹
+    output wire [`ALUOP_BUS]     id_aluop_o,        // æŒ‡ä»¤æ“ä½œç 
+    output wire [`REG_ADDR_BUS]  id_wa_o,           // å†™å›å¯„å­˜å™¨åœ°å€
+    output wire                  id_wreg_o,         // å†™å¯„å­˜å™¨ä½¿èƒ½
+    output wire [`REG_BUS]       id_src1_o,         // æ“ä½œæ•°1ï¼ˆrs1/PCï¼‰
+    output wire [`REG_BUS]       id_src2_o,         // æ“ä½œæ•°2ï¼ˆrs2/ç«‹å³æ•°/rdï¼‰
+    output wire [`INST_ADDR_BUS] id_branch_target_o,// åˆ†æ”¯ç›®æ ‡åœ°å€ï¼ˆä¿®æ­£å·¦ç§»2ä½ï¼‰
+    output wire [`REG_ADDR_BUS]  ra1,               // å¯„å­˜å™¨è¯»åœ°å€1ï¼ˆrs1ï¼‰
+    output wire [`REG_ADDR_BUS]  ra2,               // å¯„å­˜å™¨è¯»åœ°å€2ï¼ˆrs2/rdï¼‰
+    output wire [`INST_ADDR_BUS] debug_wb_pc        // è°ƒè¯•PCå€¼è¾“å‡º
+);
+    // æŒ‡ä»¤å­—èŠ‚åºè½¬æ¢ï¼ˆå°ç«¯â†’å¤§ç«¯ï¼‰
+    wire [`INST_BUS] inst = {id_inst_i[7:0], id_inst_i[15:8], id_inst_i[23:16], id_inst_i[31:24]};
 
-    // ´ÓÈ¡Ö¸½×¶Î»ñµÃµÄPCÖµ
-    input  wire [`INST_ADDR_BUS]    id_pc_i,
-    input  wire [`INST_ADDR_BUS]    id_debug_wb_pc,  // ¹©µ÷ÊÔÊ¹ÓÃµÄPCÖµ£¬ÉÏ°å²âÊÔÊ±Îñ±ØÉ¾³ı¸ÃĞÅºÅ
-    
-    // ´ÓÖ¸Áî´æ´¢Æ÷¶Á³öµÄÖ¸Áî×Ö
-    input  wire [`INST_BUS     ]    id_inst_i,
-    
-    // ´ÓÍ¨ÓÃ¼Ä´æÆ÷¶Ñ¶Á³öµÄÊı¾İ 
-    input  wire [`REG_BUS      ]    rd1,
-    input  wire [`REG_BUS      ]    rd2,         
-    
-    // ËÍÖÁÖ´ĞĞ½×¶ÎµÄÒëÂëĞÅÏ¢
-    output wire [`ALUTYPE_BUS  ]    id_alutype_o,
-    output wire [`ALUOP_BUS    ]    id_aluop_o,
-    output wire [`REG_ADDR_BUS ]    id_wa_o,
-    output wire                     id_wreg_o,
+    // æå–æŒ‡ä»¤å­—æ®µï¼ˆä¸¥æ ¼éµå¾ªLoongArch32è§„èŒƒï¼‰
+    wire [5:0]  opcode1 = inst[31:26];  // ä¸€çº§ opcodeï¼ˆ31:26ï¼‰
+    wire [3:0]  opcode2 = inst[25:22];  // äºŒçº§ opcodeï¼ˆ25:22ï¼‰
+    wire [6:0]  opcode3 = inst[21:15];  // ä¸‰çº§ opcodeï¼ˆ3Rå‹æŒ‡ä»¤ï¼‰
+    wire [4:0]  rj      = inst[9:5];    // æºå¯„å­˜å™¨1ï¼ˆrs1ï¼š9:5ï¼‰
+    wire [4:0]  rk      = inst[14:10];  // æºå¯„å­˜å™¨2ï¼ˆrs2ï¼š14:10ï¼Œ3Rå‹ï¼‰
+    wire [4:0]  rd      = inst[4:0];    // ç›®æ ‡å¯„å­˜å™¨ï¼ˆrdï¼š4:0ï¼‰/storeæºæ•°æ®å¯„å­˜å™¨
+    wire [11:0] imm12   = inst[21:10];  // 12ä½ç«‹å³æ•°ï¼ˆIå‹ï¼š21:10ï¼‰
+    wire [15:0] imm16   = inst[21:6];   // 16ä½ç«‹å³æ•°ï¼ˆåˆ†æ”¯ï¼š21:6ï¼‰
+    wire [19:0] imm20   = inst[24:5];   // 20ä½ç«‹å³æ•°ï¼ˆUå‹ï¼š24:5ï¼‰
 
-    // ËÍÖÁÖ´ĞĞ½×¶ÎµÄÔ´²Ù×÷Êı1¡¢Ô´²Ù×÷Êı2
-    output wire [`REG_BUS      ]    id_src1_o,
-    output wire [`REG_BUS      ]    id_src2_o,
-    
-    // ËÍÖÁ¶ÁÍ¨ÓÃ¼Ä´æÆ÷¶Ñ¶Ë¿ÚµØÖ·
-    output wire [`REG_ADDR_BUS ]    ra1,
-    output wire [`REG_ADDR_BUS ]    ra2,
-    
-    output       [`INST_ADDR_BUS] 	debug_wb_pc  // ¹©µ÷ÊÔÊ¹ÓÃµÄPCÖµ£¬ÉÏ°å²âÊÔÊ±Îñ±ØÉ¾³ı¸ÃĞÅºÅ
-    );
-    
-    // ¸ù¾İĞ¡¶ËÄ£Ê½×éÖ¯Ö¸Áî×Ö
-    wire [`INST_BUS     ]    inst;
-    assign inst = {id_inst_i[7:0], id_inst_i[15:8], id_inst_i[23:16], id_inst_i[31:24]};
-    
-    // ÌáÈ¡Ö¸Áî×ÖÖĞ¸÷¸ö×Ö¶ÎµÄĞÅÏ¢
-    wire [16:0] op17  = inst[31:15];
-    wire [4 :0] rd    = inst[4 : 0];
-    wire [4 :0] rj    = inst[9 : 5];
-    wire [11:0] imm12 = inst[21:10];
-    
-    // Éæ¼°Á¢¼´ÊıÅĞ¶¨µÄĞÅºÅ
-    wire        id_immsel;
-    wire        id_sext;
+    // æŒ‡ä»¤è¯†åˆ«ä¿¡å·
+    wire inst_addw     = (opcode1 == 6'h00) && (opcode2 == 4'h00) && (opcode3 == 7'h20);
+    wire inst_or       = (opcode1 == 6'h00) && (opcode2 == 4'h00) && (opcode3 == 7'h28);
+    wire inst_xor      = (opcode1 == 6'h00) && (opcode2 == 4'h00) && (opcode3 == 7'h29);
+    wire inst_sllw     = (opcode1 == 6'h00) && (opcode2 == 4'h00) && (opcode3 == 7'h2E);
+    wire inst_addiw    = (opcode1 == 6'h00) && (opcode2 == 4'h08);
+    wire inst_sltui    = (opcode1 == 6'h00) && (opcode2 == 4'h09);
+    wire inst_andi     = (opcode1 == 6'h00) && (opcode2 == 4'h0D);
+    wire inst_ori      = (opcode1 == 6'h00) && (opcode2 == 4'h0E);
+    wire inst_lu12iw   = (opcode1 == 6'h05);  // LoongArchè§„èŒƒopcode1=0x05
+    wire inst_pcaddu12i= (opcode1 == 6'h07);
+    wire inst_load     = (opcode1 == 6'h0A);  // load opcode1=0x0Aï¼ˆè§„èŒƒé™„å½•Bï¼‰
+    wire inst_store    = (opcode1 == 6'h0B);  // store opcode1=0x0Bï¼ˆè§„èŒƒé™„å½•Bï¼‰
+    wire inst_beq      = (opcode1 == 6'h16);
+    wire inst_bne      = (opcode1 == 6'h17);
+    wire inst_bgeu     = (opcode1 == 6'h1B);
+    wire inst_ldb      = inst_load && (opcode2 == 4'h00);
+    wire inst_ldw      = inst_load && (opcode2 == 4'h02);
+    wire inst_stb      = inst_store && (opcode2 == 4'h04);
+    wire inst_stw      = inst_store && (opcode2 == 4'h06);
 
-    /*-------------------- µÚÒ»¼¶ÒëÂëÂß¼­£ºÈ·¶¨µ±Ç°ĞèÒªÒëÂëµÄÖ¸Áî --------------------*/
-    // ÒÔ andi.w Ö¸ÁîÎªÀı ÆäÓàÖ¸ÁîĞèÒª×ÔĞĞÍê³É
-    wire inst_andi  = ~|op17[16:11] & ~(~|op17[16:6]) &  op17[10] &  op17[9] & ~op17[8] &  op17[7];
-    
-    /*--------------------- µÚ¶ş¼¶ÒëÂëÂß¼­£ºÉú³É¾ßÌå¿ØÖÆĞÅºÅ -------------------------*/
-    // ²Ù×÷ÀàĞÍalutype
-    assign id_alutype_o[2] = 1'b0;
-    assign id_alutype_o[1] = inst_andi;
-    assign id_alutype_o[0] = 1'b0; 
-    
-    // ÄÚ²¿²Ù×÷Âëaluop
-    assign id_aluop_o[7]   = 1'b0;
-    assign id_aluop_o[6]   = 1'b0;
-    assign id_aluop_o[5]   = 1'b0;
-    assign id_aluop_o[4]   = inst_andi;
-    assign id_aluop_o[3]   = inst_andi;
-    assign id_aluop_o[2]   = inst_andi;
-    assign id_aluop_o[1]   = 1'b0;
-    assign id_aluop_o[0]   = 1'b0;
-    
-    // Ğ´Í¨ÓÃ¼Ä´æÆ÷Ê¹ÄÜĞÅºÅ
-    assign id_wreg_o = inst_andi;
-    // È·¶¨µÚ¶ş¸ö²Ù×÷ÊıÀ´Ô´µÄĞÅºÅ£¨¼Ä´æÆ÷orÁ¢¼´Êı£©
-    assign id_immsel = inst_andi;
-    // ¶ÔÁ¢¼´Êı½øĞĞ·ûºÅÀ©Õ¹»òÕßÁãÀ©Õ¹µÄĞÅºÅ
-    assign id_sext   = 1'b0;
-    /*------------------------------------------------------------------------------*/
+    // ç”Ÿæˆalutypeï¼ˆæŒ‡ä»¤ç±»å‹ï¼‰
+    assign id_alutype_o = inst_addw  ? `ARITH   :
+                          inst_addiw ? `ARITH   :
+                          inst_or    ? `LOGIC   :
+                          inst_ori   ? `LOGIC   :
+                          inst_andi  ? `LOGIC   :
+                          inst_xor   ? `LOGIC   :
+                          inst_sltui ? `ARITH   :
+                          inst_sllw  ? `SHIFT   :
+                          inst_lu12iw? `MOVE    :
+                          inst_pcaddu12i ? `MOVE :
+                          inst_beq   ? `BRANCH  :
+                          inst_bne   ? `BRANCH  :
+                          inst_bgeu  ? `BRANCH  :
+                          inst_ldb   ? `LOAD    :
+                          inst_ldw   ? `LOAD    :
+                          inst_stb   ? `STORE   :
+                          inst_stw   ? `STORE   : `NOP;
 
-    // ¶ÁÍ¨ÓÃ¼Ä´æÆ÷2¸ö¶Ñ¶Ë¿ÚµÄµØÖ·È·ÈÏ
-    assign ra1   = rj;
-    assign ra2   = 5'b0;
-    
-    // »ñµÃ´ıĞ´ÈëÄ¿µÄ¼Ä´æÆ÷µÄµØÖ·
-    assign id_wa_o      = rd;
-    
-    // »ñµÃÎ»ÒÆºóÁ¢¼´Êı£¬Èç¹ûsextÓĞĞ§Ôò·ûºÅÍØÕ¹£¬Èç¹ûsextÎŞĞ§ÔòÁãÍØÕ¹
-    wire [31:0] imm32;
-    assign imm32 = (id_sext  == `TRUE_V) ? ({ {20{imm12[11]} } , imm12}) : ({20'b0 , imm12});
+    // ç”Ÿæˆaluopï¼ˆæŒ‡ä»¤æ“ä½œç ï¼‰
+    assign id_aluop_o = inst_addw  ? `LoongArch32_ADD_W    :
+                        inst_addiw ? `LoongArch32_ADDI_W   :
+                        inst_or    ? `LoongArch32_OR       :
+                        inst_ori   ? `LoongArch32_ORI      :
+                        inst_andi  ? `LoongArch32_ANDI     :
+                        inst_xor   ? `LoongArch32_XOR      :
+                        inst_sltui ? `LoongArch32_SLTU     :
+                        inst_sllw  ? `LoongArch32_SLL      :
+                        inst_lu12iw? `LoongArch32_LU12I_W  :
+                        inst_pcaddu12i ? `LoongArch32_PCADDU12I :
+                        inst_beq   ? `LoongArch32_BEQ      :
+                        inst_bne   ? `LoongArch32_BNE      :
+                        inst_bgeu  ? `LoongArch32_BGEU     :
+                        inst_ldb   ? `LoongArch32_LD_B     :
+                        inst_ldw   ? `LoongArch32_LD_W     :
+                        inst_stb   ? `LoongArch32_ST_B     :
+                        inst_stw   ? `LoongArch32_ST_W     : `LoongArch32_SLL;
 
-    // »ñµÃÔ´²Ù×÷Êı1¡£Èç¹ûshiftĞÅºÅÓĞĞ§£¬ÔòÔ´²Ù×÷Êı1ÎªÒÆÎ»Î»Êı£»·ñÔòÎª´Ó¶ÁÍ¨ÓÃ¼Ä´æÆ÷¶Ñ¶Ë¿Ú1»ñµÃµÄÊı¾İ
-    assign id_src1_o =  rd1;
+    // ç”Ÿæˆå†™å¯„å­˜å™¨ä½¿èƒ½ï¼ˆstore/branchä¸å†™å¯„å­˜å™¨ï¼‰
+    assign id_wreg_o = !(inst_store || inst_beq || inst_bne || inst_bgeu);
+    // ç”Ÿæˆå†™å›å¯„å­˜å™¨åœ°å€ï¼ˆrdï¼‰
+    assign id_wa_o = rd;
 
-    // »ñµÃÔ´²Ù×÷Êı2¡£Èç¹ûimmselĞÅºÅÓĞĞ§£¬ÔòÔ´²Ù×÷Êı1ÎªÁ¢¼´Êı£»·ñÔòÎª´Ó¶ÁÍ¨ÓÃ¼Ä´æÆ÷¶Ñ¶Ë¿Ú2»ñµÃµÄÊı¾İ
-    assign id_src2_o = (id_immsel == `READ_ENABLE) ? imm32 : rd2;           
-    
-    assign debug_wb_pc = id_debug_wb_pc;    // ÉÏ°å²âÊÔÊ±Îñ±ØÉ¾³ı¸ÃÓï¾ä  
-    
+    // ç”Ÿæˆå¯„å­˜å™¨è¯»åœ°å€ï¼ˆstoreçš„ra2=rdï¼Œ3Rå‹ra2=rkï¼‰
+    assign ra1 = rj;  // æ‰€æœ‰æŒ‡ä»¤rs1=rj
+    assign ra2 = inst_store ? rd :
+                 (inst_addw || inst_or || inst_xor || inst_sllw) ? rk : 5'h0;
+
+    // ç«‹å³æ•°æ‰©å±•é€»è¾‘ï¼ˆä¸¥æ ¼éµå¾ªLoongArchè§„èŒƒï¼‰
+    wire [`REG_BUS] imm12_sext = {{20{imm12[11]}}, imm12};  // 12ä½ç¬¦å·æ‰©å±•
+    wire [`REG_BUS] imm12_zext = {20'h00000, imm12};        // 12ä½é›¶æ‰©å±•
+    wire [`REG_BUS] imm16_sext = {{16{imm16[15]}}, imm16};  // 16ä½ç¬¦å·æ‰©å±•ï¼ˆåˆ†æ”¯ï¼‰
+    wire [`REG_BUS] imm20_sh12 = {imm20, 12'h000};          // lu12i.wï¼š20ä½å·¦ç§»12ä½
+    wire [`REG_BUS] imm20_sext_sh12 = {{12{imm20[19]}}, imm20, 12'h000};  // pcaddu12iç¬¦å·æ‰©å±•
+
+    // æ“ä½œæ•°1å‰æ¨é€‰æ‹©ï¼ˆEXE > MEM > WB > å¯„å­˜å™¨å †ï¼‰
+    wire [`REG_BUS] op1_reg = (forward_sel1_i == 2'b01) ? forward_data_exe :
+                              (forward_sel1_i == 2'b10) ? forward_data_mem :
+                              (forward_sel1_i == 2'b11) ? forward_data_wb  : rd1;
+    wire [`REG_BUS] op1 = inst_pcaddu12i ? id_pc_i : op1_reg;  // pcaddu12iï¼šop1=PC
+
+    // æ“ä½œæ•°2å‰æ¨é€‰æ‹©ï¼ˆè¦†ç›–storeçš„rdå‰æ¨ï¼‰
+    wire [`REG_BUS] op2_reg = (forward_sel2_i == 2'b01) ? forward_data_exe :
+                              (forward_sel2_i == 2'b10) ? forward_data_mem :
+                              (forward_sel2_i == 2'b11) ? forward_data_wb  : rd2;
+    wire [`REG_BUS] op2 = inst_addiw  ? imm12_sext :
+                          inst_ori    ? imm12_zext :
+                          inst_andi   ? imm12_zext :
+                          inst_sltui  ? imm12_zext :
+                          inst_lu12iw ? imm20_sh12 :
+                          inst_pcaddu12i ? imm20_sext_sh12 :
+                          inst_load   ? imm12_sext :
+                          inst_store  ? op2_reg :  // storeï¼šop2=rdçš„å€¼ï¼ˆç»å‰æ¨ï¼‰
+                          op2_reg;
+
+    // è¾“å‡ºæœ€ç»ˆæ“ä½œæ•°
+    assign id_src1_o = op1;
+    assign id_src2_o = op2;
+
+    // åˆ†æ”¯ç›®æ ‡åœ°å€è®¡ç®—ï¼ˆä¿®æ­£ï¼šimm16å·¦ç§»2ä½ï¼Œç¬¦åˆLoongArchè§„èŒƒï¼‰
+    assign id_branch_target_o = id_pc_i + 4 + (imm16_sext << 2);
+
+    // è°ƒè¯•PCå€¼è¾“å‡º
+    assign debug_wb_pc = id_debug_wb_pc_i;
 endmodule
