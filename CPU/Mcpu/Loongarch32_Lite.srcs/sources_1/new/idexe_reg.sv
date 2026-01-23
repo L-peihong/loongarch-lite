@@ -33,8 +33,8 @@ module idexe_reg(
             exe_wreg           <= `WRITE_DISABLE;
             exe_debug_wb_pc    <= `PC_INIT;
             exe_branch_target  <= `PC_INIT;
-        end else if (flush_i || stall_i) begin
-            // 冲刷或暂停时，EXE阶段清零（避免错误执行）
+        end else if (flush_i) begin
+            // 仅冲刷时清零，stall时保持原有信号
             exe_alutype        <= `NOP;
             exe_aluop          <= `LoongArch32_SLL;
             exe_src1           <= `ZERO_WORD;
@@ -43,7 +43,7 @@ module idexe_reg(
             exe_wreg           <= `WRITE_DISABLE;
             exe_debug_wb_pc    <= `PC_INIT;
             exe_branch_target  <= `PC_INIT;
-        end else begin
+        end else if (!stall_i) begin
             // 无暂停时传递解码阶段信号
             exe_alutype        <= id_alutype;
             exe_aluop          <= id_aluop;
@@ -54,5 +54,6 @@ module idexe_reg(
             exe_debug_wb_pc    <= id_debug_wb_pc;
             exe_branch_target  <= id_branch_target;
         end
+        // stall时保持原有值（与exemem_reg逻辑一致）
     end
 endmodule
