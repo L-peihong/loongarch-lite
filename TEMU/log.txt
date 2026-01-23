@@ -27,15 +27,15 @@
 [./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00700000,4) = 0x00001234
 [./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00700000 -> 0x00001234
       78:   29 80 01 9b         st.w	s4,	t0,	0x000
-[./temu/src/cpu/i12-type.c,167,ld_w] LD.W: rd=a3(7) rj=t0(12)=0x00700000 imm12=0x000 simm=0 vaddr=0x00700000 paddr=0x00700000
-[./temu/src/cpu/i12-type.c,172,ld_w] LD.W: result reg a3(7) = 0x00001234
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=a3(7) rj=t0(12)=0x00700000 imm12=0x000 simm=0 vaddr=0x00700000 paddr=0x00700000
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg a3(7) = 0x00001234
       7c:   28 80 01 87         ld.w	a3,	t0,	0x000
-[./temu/src/cpu/i12-type.c,187,st_b] ST.B: rd=s8(31)=0x000000cd rj=t0(12)=0x00700000 imm12=0x004 vaddr=0x00700004 paddr=0x00700004
-[./temu/src/cpu/i12-type.c,194,st_b] ST.B: after mem_write mem_read(0x00700004,1) = 0xcd
+[./temu/src/cpu/i12-type.c,191,st_b] ST.B: rd=s8(31)=0x000000cd rj=t0(12)=0x00700000 imm12=0x004 vaddr=0x00700004 paddr=0x00700004
+[./temu/src/cpu/i12-type.c,198,st_b] ST.B: after mem_write mem_read(0x00700004,1) = 0xcd
       80:   29 00 11 9f         st.b	s8,	t0,	0x004
-[./temu/src/cpu/i12-type.c,209,ld_b] LD.B: rd=s7(30) rj=t0(12)=0x00700000 imm12=0x004 vaddr=0x00700004 paddr=0x00700004
-[./temu/src/cpu/i12-type.c,216,ld_b] LD.B: result reg s7(30) = 0xffffffcd
+[./temu/src/cpu/i12-type.c,217,ld_b] LD.B: rd=s7(30) rj=t0(12)=0x00700000 imm12=0x004 vaddr=0x00700004 paddr=0x00700004
+[./temu/src/cpu/i12-type.c,224,ld_b] LD.B: result reg s7(30) = 0xffffffcd
       84:   28 00 11 9e         ld.b	s7,	t0,	0x004
-[./temu/src/cpu/i12-type.c,209,ld_b] LD.B: rd=s8(31) rj=t0(12)=0x00700000 imm12=0x000 vaddr=0x00700000 paddr=0x00700000
-[./temu/src/cpu/i12-type.c,216,ld_b] LD.B: result reg s8(31) = 0x00000034
+[./temu/src/cpu/i12-type.c,217,ld_b] LD.B: rd=s8(31) rj=t0(12)=0x00700000 imm12=0x000 vaddr=0x00700000 paddr=0x00700000
+[./temu/src/cpu/i12-type.c,224,ld_b] LD.B: result reg s8(31) = 0x00000034
       88:   28 00 01 9f         ld.b	s8,	t0,	0x000

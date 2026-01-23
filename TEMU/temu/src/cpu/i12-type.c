@@ -160,6 +160,10 @@ make_helper(ld_w) {
     uint32_t vaddr = reg_w(rj) + (uint32_t)simm;
     uint32_t paddr = vaddr & 0x7FFFFFFF;
 
+    // ========== 新增：设置op_dest，让Golden Trace捕捉Load指令的寄存器写回 ==========
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
+
     if (!check_alignment(vaddr, 4)) {
         panic("ld.w: unaligned address 0x%08x (not 4-byte aligned)", vaddr);
     }
@@ -205,6 +209,10 @@ make_helper(ld_b) {
     int32_t simm = signext12(imm12);
     uint32_t vaddr = reg_w(rj) + (uint32_t)simm;
     uint32_t paddr = vaddr & 0x7FFFFFFF;
+
+    // ========== 新增：设置op_dest，让Golden Trace捕捉Load指令的寄存器写回 ==========
+    op_dest->type = OP_TYPE_REG;
+    op_dest->reg  = rd;
 
     Log("LD.B: rd=%s(%d) rj=%s(%d)=0x%08x imm12=0x%03x vaddr=0x%08x paddr=0x%08x",
         REG_NAME(rd), rd, REG_NAME(rj), rj, reg_w(rj), imm12, vaddr, paddr);
