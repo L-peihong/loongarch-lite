@@ -1,46 +1,975 @@
-       0:   14 00 20 1e         lu12i.w	s7,	0x0100
-       4:   03 84 8c 0c         ori	t0,	zero,	0x123
-       8:   03 84 8c 0d         ori	t1,	zero,	0x123
-       c:   03 91 58 0e         ori	t2,	zero,	0x456
-      10:   03 80 04 0f         ori	t3,	zero,	0x001
-      14:   03 9e 24 10         ori	t4,	zero,	0x789
-      18:   14 00 01 51         lu12i.w	t5,	0x000a
-      1c:   03 af 36 31         ori	t5,	t5,	0xbcd
-      20:   03 81 fc 12         ori	t6,	zero,	0x07f
-      24:   03 82 00 13         ori	t7,	zero,	0x080
-      28:   58 00 0d 8d         beq	t0,	t1,	0x0003
-      34:   03 80 04 17         ori	s0,	zero,	0x001
-      38:   5c 00 0d 8e         bne	t0,	t2,	0x0003
-      44:   03 80 08 18         ori	s1,	zero,	0x002
-      48:   6c 00 0d 8f         bgeu	t0,	t3,	0x0003
-      54:   03 80 0c 19         ori	s2,	zero,	0x003
-      58:   6c 00 0d 90         bgeu	t0,	t4,	0x0003
-      5c:   03 80 00 1a         ori	s3,	zero,	0x000
-      60:   58 00 08 00         beq	zero,	zero,	0x0002
-[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t5(17)=0x0000abcd  rj=s7(30)=0x00100000 imm12=0x000 simm=0 vaddr=0x00100000 paddr=0x00100000
-[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00100000,4) = 0x0000abcd
-[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00100000 -> 0x0000abcd
-      68:   29 80 03 d1         st.w	t5,	s7,	0x000
-[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=a0(4) rj=s7(30)=0x00100000 imm12=0x000 simm=0 vaddr=0x00100000 paddr=0x00100000
-[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg a0(4) = 0x0000abcd
-      6c:   28 80 03 c4         ld.w	a0,	s7,	0x000
-      70:   58 00 0c 91         beq	a0,	t5,	0x0003
-      7c:   03 80 10 1b         ori	s4,	zero,	0x004
-[./temu/src/cpu/i12-type.c,191,st_b] ST.B: rd=t6(18)=0x0000007f rj=s7(30)=0x00100000 imm12=0x004 vaddr=0x00100004 paddr=0x00100004
-[./temu/src/cpu/i12-type.c,198,st_b] ST.B: after mem_write mem_read(0x00100004,1) = 0x7f
-      80:   29 00 13 d2         st.b	t6,	s7,	0x004
-[./temu/src/cpu/i12-type.c,217,ld_b] LD.B: rd=a1(5) rj=s7(30)=0x00100000 imm12=0x004 vaddr=0x00100004 paddr=0x00100004
-[./temu/src/cpu/i12-type.c,224,ld_b] LD.B: result reg a1(5) = 0x0000007f
-      84:   28 00 13 c5         ld.b	a1,	s7,	0x004
-      88:   02 be 04 a5         addi.w	a1,	a1,	0xf81
-      8c:   58 00 0c a0         beq	a1,	zero,	0x0003
-      98:   03 80 14 1c         ori	s5,	zero,	0x005
-[./temu/src/cpu/i12-type.c,191,st_b] ST.B: rd=t7(19)=0x00000080 rj=s7(30)=0x00100000 imm12=0x008 vaddr=0x00100008 paddr=0x00100008
-[./temu/src/cpu/i12-type.c,198,st_b] ST.B: after mem_write mem_read(0x00100008,1) = 0x80
-      9c:   29 00 23 d3         st.b	t7,	s7,	0x008
-[./temu/src/cpu/i12-type.c,217,ld_b] LD.B: rd=a2(6) rj=s7(30)=0x00100000 imm12=0x008 vaddr=0x00100008 paddr=0x00100008
-[./temu/src/cpu/i12-type.c,224,ld_b] LD.B: result reg a2(6) = 0xffffff80
-      a0:   28 00 23 c6         ld.b	a2,	s7,	0x008
-      a4:   02 82 00 c6         addi.w	a2,	a2,	0x080
-      a8:   58 00 0c c0         beq	a2,	zero,	0x0003
-      b4:   03 80 18 1d         ori	s6,	zero,	0x006
+       0:   02 80 04 0c         addi.w	t0,	zero,	0x001
+       4:   02 80 04 0d         addi.w	t1,	zero,	0x001
+       8:   15 00 80 04         lu12i.w	a0,	0x80400
+       c:   02 84 00 85         addi.w	a1,	a0,	0x100
+      10:   02 80 00 10         addi.w	t4,	zero,	0x000
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000002  rj=a0(4)=0x80400000 imm12=0x000 simm=0 vaddr=0x80400000 paddr=0x00400000
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400000,4) = 0x00000002
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400000 -> 0x00000002
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400000 imm12=0x000 simm=0 vaddr=0x80400000 paddr=0x00400000
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000002
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000003  rj=a0(4)=0x80400004 imm12=0x000 simm=0 vaddr=0x80400004 paddr=0x00400004
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400004,4) = 0x00000003
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400004 -> 0x00000003
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400004 imm12=0x000 simm=0 vaddr=0x80400004 paddr=0x00400004
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000003
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000005  rj=a0(4)=0x80400008 imm12=0x000 simm=0 vaddr=0x80400008 paddr=0x00400008
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400008,4) = 0x00000005
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400008 -> 0x00000005
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400008 imm12=0x000 simm=0 vaddr=0x80400008 paddr=0x00400008
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000005
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000008  rj=a0(4)=0x8040000c imm12=0x000 simm=0 vaddr=0x8040000c paddr=0x0040000c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040000c,4) = 0x00000008
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040000c -> 0x00000008
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040000c imm12=0x000 simm=0 vaddr=0x8040000c paddr=0x0040000c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000008
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0000000d  rj=a0(4)=0x80400010 imm12=0x000 simm=0 vaddr=0x80400010 paddr=0x00400010
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400010,4) = 0x0000000d
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400010 -> 0x0000000d
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400010 imm12=0x000 simm=0 vaddr=0x80400010 paddr=0x00400010
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0000000d
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000015  rj=a0(4)=0x80400014 imm12=0x000 simm=0 vaddr=0x80400014 paddr=0x00400014
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400014,4) = 0x00000015
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400014 -> 0x00000015
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400014 imm12=0x000 simm=0 vaddr=0x80400014 paddr=0x00400014
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000015
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000022  rj=a0(4)=0x80400018 imm12=0x000 simm=0 vaddr=0x80400018 paddr=0x00400018
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400018,4) = 0x00000022
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400018 -> 0x00000022
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400018 imm12=0x000 simm=0 vaddr=0x80400018 paddr=0x00400018
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000022
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000037  rj=a0(4)=0x8040001c imm12=0x000 simm=0 vaddr=0x8040001c paddr=0x0040001c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040001c,4) = 0x00000037
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040001c -> 0x00000037
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040001c imm12=0x000 simm=0 vaddr=0x8040001c paddr=0x0040001c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000037
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000059  rj=a0(4)=0x80400020 imm12=0x000 simm=0 vaddr=0x80400020 paddr=0x00400020
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400020,4) = 0x00000059
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400020 -> 0x00000059
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400020 imm12=0x000 simm=0 vaddr=0x80400020 paddr=0x00400020
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000059
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000090  rj=a0(4)=0x80400024 imm12=0x000 simm=0 vaddr=0x80400024 paddr=0x00400024
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400024,4) = 0x00000090
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400024 -> 0x00000090
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400024 imm12=0x000 simm=0 vaddr=0x80400024 paddr=0x00400024
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000090
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x000000e9  rj=a0(4)=0x80400028 imm12=0x000 simm=0 vaddr=0x80400028 paddr=0x00400028
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400028,4) = 0x000000e9
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400028 -> 0x000000e9
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400028 imm12=0x000 simm=0 vaddr=0x80400028 paddr=0x00400028
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x000000e9
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000179  rj=a0(4)=0x8040002c imm12=0x000 simm=0 vaddr=0x8040002c paddr=0x0040002c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040002c,4) = 0x00000179
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040002c -> 0x00000179
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040002c imm12=0x000 simm=0 vaddr=0x8040002c paddr=0x0040002c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000179
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000262  rj=a0(4)=0x80400030 imm12=0x000 simm=0 vaddr=0x80400030 paddr=0x00400030
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400030,4) = 0x00000262
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400030 -> 0x00000262
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400030 imm12=0x000 simm=0 vaddr=0x80400030 paddr=0x00400030
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000262
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x000003db  rj=a0(4)=0x80400034 imm12=0x000 simm=0 vaddr=0x80400034 paddr=0x00400034
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400034,4) = 0x000003db
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400034 -> 0x000003db
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400034 imm12=0x000 simm=0 vaddr=0x80400034 paddr=0x00400034
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x000003db
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0000063d  rj=a0(4)=0x80400038 imm12=0x000 simm=0 vaddr=0x80400038 paddr=0x00400038
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400038,4) = 0x0000063d
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400038 -> 0x0000063d
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400038 imm12=0x000 simm=0 vaddr=0x80400038 paddr=0x00400038
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0000063d
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00000a18  rj=a0(4)=0x8040003c imm12=0x000 simm=0 vaddr=0x8040003c paddr=0x0040003c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040003c,4) = 0x00000a18
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040003c -> 0x00000a18
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040003c imm12=0x000 simm=0 vaddr=0x8040003c paddr=0x0040003c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00000a18
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00001055  rj=a0(4)=0x80400040 imm12=0x000 simm=0 vaddr=0x80400040 paddr=0x00400040
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400040,4) = 0x00001055
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400040 -> 0x00001055
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400040 imm12=0x000 simm=0 vaddr=0x80400040 paddr=0x00400040
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00001055
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00001a6d  rj=a0(4)=0x80400044 imm12=0x000 simm=0 vaddr=0x80400044 paddr=0x00400044
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400044,4) = 0x00001a6d
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400044 -> 0x00001a6d
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400044 imm12=0x000 simm=0 vaddr=0x80400044 paddr=0x00400044
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00001a6d
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00002ac2  rj=a0(4)=0x80400048 imm12=0x000 simm=0 vaddr=0x80400048 paddr=0x00400048
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400048,4) = 0x00002ac2
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400048 -> 0x00002ac2
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400048 imm12=0x000 simm=0 vaddr=0x80400048 paddr=0x00400048
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00002ac2
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0000452f  rj=a0(4)=0x8040004c imm12=0x000 simm=0 vaddr=0x8040004c paddr=0x0040004c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040004c,4) = 0x0000452f
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040004c -> 0x0000452f
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040004c imm12=0x000 simm=0 vaddr=0x8040004c paddr=0x0040004c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0000452f
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00006ff1  rj=a0(4)=0x80400050 imm12=0x000 simm=0 vaddr=0x80400050 paddr=0x00400050
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400050,4) = 0x00006ff1
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400050 -> 0x00006ff1
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400050 imm12=0x000 simm=0 vaddr=0x80400050 paddr=0x00400050
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00006ff1
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0000b520  rj=a0(4)=0x80400054 imm12=0x000 simm=0 vaddr=0x80400054 paddr=0x00400054
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400054,4) = 0x0000b520
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400054 -> 0x0000b520
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400054 imm12=0x000 simm=0 vaddr=0x80400054 paddr=0x00400054
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0000b520
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00012511  rj=a0(4)=0x80400058 imm12=0x000 simm=0 vaddr=0x80400058 paddr=0x00400058
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400058,4) = 0x00012511
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400058 -> 0x00012511
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400058 imm12=0x000 simm=0 vaddr=0x80400058 paddr=0x00400058
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00012511
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0001da31  rj=a0(4)=0x8040005c imm12=0x000 simm=0 vaddr=0x8040005c paddr=0x0040005c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040005c,4) = 0x0001da31
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040005c -> 0x0001da31
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040005c imm12=0x000 simm=0 vaddr=0x8040005c paddr=0x0040005c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0001da31
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0002ff42  rj=a0(4)=0x80400060 imm12=0x000 simm=0 vaddr=0x80400060 paddr=0x00400060
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400060,4) = 0x0002ff42
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400060 -> 0x0002ff42
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400060 imm12=0x000 simm=0 vaddr=0x80400060 paddr=0x00400060
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0002ff42
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0004d973  rj=a0(4)=0x80400064 imm12=0x000 simm=0 vaddr=0x80400064 paddr=0x00400064
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400064,4) = 0x0004d973
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400064 -> 0x0004d973
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400064 imm12=0x000 simm=0 vaddr=0x80400064 paddr=0x00400064
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0004d973
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0007d8b5  rj=a0(4)=0x80400068 imm12=0x000 simm=0 vaddr=0x80400068 paddr=0x00400068
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400068,4) = 0x0007d8b5
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400068 -> 0x0007d8b5
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400068 imm12=0x000 simm=0 vaddr=0x80400068 paddr=0x00400068
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0007d8b5
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x000cb228  rj=a0(4)=0x8040006c imm12=0x000 simm=0 vaddr=0x8040006c paddr=0x0040006c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040006c,4) = 0x000cb228
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040006c -> 0x000cb228
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040006c imm12=0x000 simm=0 vaddr=0x8040006c paddr=0x0040006c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x000cb228
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00148add  rj=a0(4)=0x80400070 imm12=0x000 simm=0 vaddr=0x80400070 paddr=0x00400070
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400070,4) = 0x00148add
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400070 -> 0x00148add
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400070 imm12=0x000 simm=0 vaddr=0x80400070 paddr=0x00400070
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00148add
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00213d05  rj=a0(4)=0x80400074 imm12=0x000 simm=0 vaddr=0x80400074 paddr=0x00400074
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400074,4) = 0x00213d05
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400074 -> 0x00213d05
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400074 imm12=0x000 simm=0 vaddr=0x80400074 paddr=0x00400074
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00213d05
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0035c7e2  rj=a0(4)=0x80400078 imm12=0x000 simm=0 vaddr=0x80400078 paddr=0x00400078
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400078,4) = 0x0035c7e2
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400078 -> 0x0035c7e2
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400078 imm12=0x000 simm=0 vaddr=0x80400078 paddr=0x00400078
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0035c7e2
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x005704e7  rj=a0(4)=0x8040007c imm12=0x000 simm=0 vaddr=0x8040007c paddr=0x0040007c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040007c,4) = 0x005704e7
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040007c -> 0x005704e7
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040007c imm12=0x000 simm=0 vaddr=0x8040007c paddr=0x0040007c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x005704e7
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x008cccc9  rj=a0(4)=0x80400080 imm12=0x000 simm=0 vaddr=0x80400080 paddr=0x00400080
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400080,4) = 0x008cccc9
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400080 -> 0x008cccc9
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400080 imm12=0x000 simm=0 vaddr=0x80400080 paddr=0x00400080
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x008cccc9
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x00e3d1b0  rj=a0(4)=0x80400084 imm12=0x000 simm=0 vaddr=0x80400084 paddr=0x00400084
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400084,4) = 0x00e3d1b0
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400084 -> 0x00e3d1b0
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400084 imm12=0x000 simm=0 vaddr=0x80400084 paddr=0x00400084
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x00e3d1b0
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x01709e79  rj=a0(4)=0x80400088 imm12=0x000 simm=0 vaddr=0x80400088 paddr=0x00400088
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400088,4) = 0x01709e79
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400088 -> 0x01709e79
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400088 imm12=0x000 simm=0 vaddr=0x80400088 paddr=0x00400088
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x01709e79
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x02547029  rj=a0(4)=0x8040008c imm12=0x000 simm=0 vaddr=0x8040008c paddr=0x0040008c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040008c,4) = 0x02547029
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040008c -> 0x02547029
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040008c imm12=0x000 simm=0 vaddr=0x8040008c paddr=0x0040008c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x02547029
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x03c50ea2  rj=a0(4)=0x80400090 imm12=0x000 simm=0 vaddr=0x80400090 paddr=0x00400090
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400090,4) = 0x03c50ea2
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400090 -> 0x03c50ea2
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400090 imm12=0x000 simm=0 vaddr=0x80400090 paddr=0x00400090
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x03c50ea2
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x06197ecb  rj=a0(4)=0x80400094 imm12=0x000 simm=0 vaddr=0x80400094 paddr=0x00400094
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400094,4) = 0x06197ecb
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400094 -> 0x06197ecb
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400094 imm12=0x000 simm=0 vaddr=0x80400094 paddr=0x00400094
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x06197ecb
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x09de8d6d  rj=a0(4)=0x80400098 imm12=0x000 simm=0 vaddr=0x80400098 paddr=0x00400098
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400098,4) = 0x09de8d6d
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400098 -> 0x09de8d6d
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x80400098 imm12=0x000 simm=0 vaddr=0x80400098 paddr=0x00400098
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x09de8d6d
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x0ff80c38  rj=a0(4)=0x8040009c imm12=0x000 simm=0 vaddr=0x8040009c paddr=0x0040009c
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x0040009c,4) = 0x0ff80c38
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x0040009c -> 0x0ff80c38
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x8040009c imm12=0x000 simm=0 vaddr=0x8040009c paddr=0x0040009c
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x0ff80c38
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x19d699a5  rj=a0(4)=0x804000a0 imm12=0x000 simm=0 vaddr=0x804000a0 paddr=0x004000a0
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000a0,4) = 0x19d699a5
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000a0 -> 0x19d699a5
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000a0 imm12=0x000 simm=0 vaddr=0x804000a0 paddr=0x004000a0
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x19d699a5
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x29cea5dd  rj=a0(4)=0x804000a4 imm12=0x000 simm=0 vaddr=0x804000a4 paddr=0x004000a4
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000a4,4) = 0x29cea5dd
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000a4 -> 0x29cea5dd
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000a4 imm12=0x000 simm=0 vaddr=0x804000a4 paddr=0x004000a4
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x29cea5dd
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x43a53f82  rj=a0(4)=0x804000a8 imm12=0x000 simm=0 vaddr=0x804000a8 paddr=0x004000a8
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000a8,4) = 0x43a53f82
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000a8 -> 0x43a53f82
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000a8 imm12=0x000 simm=0 vaddr=0x804000a8 paddr=0x004000a8
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x43a53f82
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x6d73e55f  rj=a0(4)=0x804000ac imm12=0x000 simm=0 vaddr=0x804000ac paddr=0x004000ac
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000ac,4) = 0x6d73e55f
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000ac -> 0x6d73e55f
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000ac imm12=0x000 simm=0 vaddr=0x804000ac paddr=0x004000ac
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x6d73e55f
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0xb11924e1  rj=a0(4)=0x804000b0 imm12=0x000 simm=0 vaddr=0x804000b0 paddr=0x004000b0
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000b0,4) = 0xb11924e1
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000b0 -> 0xb11924e1
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000b0 imm12=0x000 simm=0 vaddr=0x804000b0 paddr=0x004000b0
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0xb11924e1
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x1e8d0a40  rj=a0(4)=0x804000b4 imm12=0x000 simm=0 vaddr=0x804000b4 paddr=0x004000b4
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000b4,4) = 0x1e8d0a40
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000b4 -> 0x1e8d0a40
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000b4 imm12=0x000 simm=0 vaddr=0x804000b4 paddr=0x004000b4
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x1e8d0a40
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0xcfa62f21  rj=a0(4)=0x804000b8 imm12=0x000 simm=0 vaddr=0x804000b8 paddr=0x004000b8
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000b8,4) = 0xcfa62f21
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000b8 -> 0xcfa62f21
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000b8 imm12=0x000 simm=0 vaddr=0x804000b8 paddr=0x004000b8
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0xcfa62f21
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0xee333961  rj=a0(4)=0x804000bc imm12=0x000 simm=0 vaddr=0x804000bc paddr=0x004000bc
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000bc,4) = 0xee333961
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000bc -> 0xee333961
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000bc imm12=0x000 simm=0 vaddr=0x804000bc paddr=0x004000bc
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0xee333961
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0xbdd96882  rj=a0(4)=0x804000c0 imm12=0x000 simm=0 vaddr=0x804000c0 paddr=0x004000c0
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000c0,4) = 0xbdd96882
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000c0 -> 0xbdd96882
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000c0 imm12=0x000 simm=0 vaddr=0x804000c0 paddr=0x004000c0
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0xbdd96882
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0xac0ca1e3  rj=a0(4)=0x804000c4 imm12=0x000 simm=0 vaddr=0x804000c4 paddr=0x004000c4
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000c4,4) = 0xac0ca1e3
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000c4 -> 0xac0ca1e3
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000c4 imm12=0x000 simm=0 vaddr=0x804000c4 paddr=0x004000c4
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0xac0ca1e3
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x69e60a65  rj=a0(4)=0x804000c8 imm12=0x000 simm=0 vaddr=0x804000c8 paddr=0x004000c8
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000c8,4) = 0x69e60a65
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000c8 -> 0x69e60a65
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000c8 imm12=0x000 simm=0 vaddr=0x804000c8 paddr=0x004000c8
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x69e60a65
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x15f2ac48  rj=a0(4)=0x804000cc imm12=0x000 simm=0 vaddr=0x804000cc paddr=0x004000cc
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000cc,4) = 0x15f2ac48
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000cc -> 0x15f2ac48
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000cc imm12=0x000 simm=0 vaddr=0x804000cc paddr=0x004000cc
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x15f2ac48
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x7fd8b6ad  rj=a0(4)=0x804000d0 imm12=0x000 simm=0 vaddr=0x804000d0 paddr=0x004000d0
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000d0,4) = 0x7fd8b6ad
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000d0 -> 0x7fd8b6ad
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000d0 imm12=0x000 simm=0 vaddr=0x804000d0 paddr=0x004000d0
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x7fd8b6ad
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x95cb62f5  rj=a0(4)=0x804000d4 imm12=0x000 simm=0 vaddr=0x804000d4 paddr=0x004000d4
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000d4,4) = 0x95cb62f5
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000d4 -> 0x95cb62f5
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000d4 imm12=0x000 simm=0 vaddr=0x804000d4 paddr=0x004000d4
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x95cb62f5
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x15a419a2  rj=a0(4)=0x804000d8 imm12=0x000 simm=0 vaddr=0x804000d8 paddr=0x004000d8
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000d8,4) = 0x15a419a2
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000d8 -> 0x15a419a2
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000d8 imm12=0x000 simm=0 vaddr=0x804000d8 paddr=0x004000d8
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x15a419a2
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0xab6f7c97  rj=a0(4)=0x804000dc imm12=0x000 simm=0 vaddr=0x804000dc paddr=0x004000dc
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000dc,4) = 0xab6f7c97
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000dc -> 0xab6f7c97
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000dc imm12=0x000 simm=0 vaddr=0x804000dc paddr=0x004000dc
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0xab6f7c97
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0xc1139639  rj=a0(4)=0x804000e0 imm12=0x000 simm=0 vaddr=0x804000e0 paddr=0x004000e0
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000e0,4) = 0xc1139639
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000e0 -> 0xc1139639
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000e0 imm12=0x000 simm=0 vaddr=0x804000e0 paddr=0x004000e0
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0xc1139639
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x6c8312d0  rj=a0(4)=0x804000e4 imm12=0x000 simm=0 vaddr=0x804000e4 paddr=0x004000e4
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000e4,4) = 0x6c8312d0
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000e4 -> 0x6c8312d0
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000e4 imm12=0x000 simm=0 vaddr=0x804000e4 paddr=0x004000e4
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x6c8312d0
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x2d96a909  rj=a0(4)=0x804000e8 imm12=0x000 simm=0 vaddr=0x804000e8 paddr=0x004000e8
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000e8,4) = 0x2d96a909
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000e8 -> 0x2d96a909
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000e8 imm12=0x000 simm=0 vaddr=0x804000e8 paddr=0x004000e8
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x2d96a909
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x9a19bbd9  rj=a0(4)=0x804000ec imm12=0x000 simm=0 vaddr=0x804000ec paddr=0x004000ec
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000ec,4) = 0x9a19bbd9
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000ec -> 0x9a19bbd9
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000ec imm12=0x000 simm=0 vaddr=0x804000ec paddr=0x004000ec
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x9a19bbd9
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0xc7b064e2  rj=a0(4)=0x804000f0 imm12=0x000 simm=0 vaddr=0x804000f0 paddr=0x004000f0
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000f0,4) = 0xc7b064e2
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000f0 -> 0xc7b064e2
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000f0 imm12=0x000 simm=0 vaddr=0x804000f0 paddr=0x004000f0
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0xc7b064e2
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x61ca20bb  rj=a0(4)=0x804000f4 imm12=0x000 simm=0 vaddr=0x804000f4 paddr=0x004000f4
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000f4,4) = 0x61ca20bb
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000f4 -> 0x61ca20bb
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000f4 imm12=0x000 simm=0 vaddr=0x804000f4 paddr=0x004000f4
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x61ca20bb
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x297a859d  rj=a0(4)=0x804000f8 imm12=0x000 simm=0 vaddr=0x804000f8 paddr=0x004000f8
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000f8,4) = 0x297a859d
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000f8 -> 0x297a859d
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000f8 imm12=0x000 simm=0 vaddr=0x804000f8 paddr=0x004000f8
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x297a859d
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      14:   00 10 35 8e         add.w	t2,	t0,	t1
+      18:   02 80 01 ac         addi.w	t0,	t1,	0x000
+      1c:   02 80 01 cd         addi.w	t1,	t2,	0x000
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=t2(14)=0x8b44a658  rj=a0(4)=0x804000fc imm12=0x000 simm=0 vaddr=0x804000fc paddr=0x004000fc
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x004000fc,4) = 0x8b44a658
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x004000fc -> 0x8b44a658
+      20:   29 80 00 8e         st.w	t2,	a0,	0x000
+[./temu/src/cpu/i12-type.c,171,ld_w] LD.W: rd=t3(15) rj=a0(4)=0x804000fc imm12=0x000 simm=0 vaddr=0x804000fc paddr=0x004000fc
+[./temu/src/cpu/i12-type.c,176,ld_w] LD.W: result reg t3(15) = 0x8b44a658
+      24:   28 80 00 8f         ld.w	t3,	a0,	0x000
+      28:   5c 00 39 cf         bne	t2,	t3,	0x000e
+      2c:   03 40 00 00         andi	zero,	zero,	0x000
+      30:   02 80 10 84         addi.w	a0,	a0,	0x004
+      34:   02 80 06 10         addi.w	t4,	t4,	0x001
+      38:   5f ff dc 85         bne	a0,	a1,	0x3ff7
+      3c:   03 40 00 00         andi	zero,	zero,	0x000
+      40:   15 00 80 17         lu12i.w	s0,	0x80400
+      44:   02 84 02 f7         addi.w	s0,	s0,	0x100
+      48:   14 ab 54 b8         lu12i.w	s1,	0x55aa5
+      4c:   03 96 ab 18         ori	s1,	s1,	0x5aa
+[./temu/src/cpu/i12-type.c,125,st_w] ST.W: rd=s1(24)=0x55aa55aa  rj=s0(23)=0x80400100 imm12=0x000 simm=0 vaddr=0x80400100 paddr=0x00400100
+[./temu/src/cpu/i12-type.c,134,st_w] ST.W: after mem_write mem_read(0x00400100,4) = 0x55aa55aa
+[./temu/src/cpu/i12-type.c,144,st_w] ST.W: direct hw_mem read at paddr=0x00400100 -> 0x55aa55aa
+      50:   29 80 02 f8         st.w	s1,	s0,	0x000
+      54:   03 81 90 10         ori	t4,	zero,	0x064

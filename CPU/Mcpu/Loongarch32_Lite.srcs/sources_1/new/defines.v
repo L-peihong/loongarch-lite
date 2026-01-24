@@ -19,8 +19,9 @@
 `define IMM_ENABLE      1'b1                // 立即数选择使能
 `define UPPER_ENABLE    1'b1                // 高位扩展使能
 `define MREG_ENABLE     1'b1                // 写存储器选择信号
-`define BSEL_BUS        3:0                 // 数据存储器字节选择信号宽度
+`define BSEL_BUS        1:0                 // 数据存储器字节选择信号宽度（2位，对应4字节）
 `define PC_INIT         32'h80000000        // PC初始值
+
 /*------------------- 指令相关定义 -------------------*/
 `define INST_ADDR_BUS   31:0                // 指令地址总线
 `define INST_BUS        31:0                // 指令数据总线
