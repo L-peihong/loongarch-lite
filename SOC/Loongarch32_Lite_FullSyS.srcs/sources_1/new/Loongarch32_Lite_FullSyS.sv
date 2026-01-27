@@ -17,7 +17,6 @@ module Loongarch32_Lite_FullSyS(
         if(~locked) rst_n = 1'b0; 
         else        rst_n = 1'b1;
     end
-
     // 7段数码管驱动（保留原示例逻辑）
     logic [3:0] seg_wdata[0:8];
     x7seg seg_cs_data_gen0 (
@@ -26,15 +25,6 @@ module Loongarch32_Lite_FullSyS(
         .seg_cs(seg_cs),
         .seg_data(seg_data)
     );
-
-    // LED示例（保留原逻辑）
-    logic [31:0] sw_1_ff;
-    always_ff @(posedge clk or negedge rst_n) begin
-        if(~rst_n) sw_1_ff <= 0;
-        else sw_1_ff <= sw_1;
-    end
-    assign led = sw_1_ff;
-
     // 数码管示例（保留原逻辑）
     logic [31:0] sw_2_ff;
     always_ff @(posedge clk or negedge rst_n) begin
@@ -46,7 +36,6 @@ module Loongarch32_Lite_FullSyS(
     assign seg_wdata[4] = sw_2_ff[11:8];
     assign seg_wdata[5] = sw_2_ff[15:12];
     assign seg_wdata[6] = sw_2_ff[19:16];
-
 // -------------------------- 核心模块实例化 --------------------------
 // 1. CPU核接口信号
 wire [31:0] iaddr;          // 取指地址
@@ -100,7 +89,6 @@ uart_reg uart_reg0(
     .uart_tx_data(ext_uart_t.TxD_data),
     .uart_tx_busy(ext_uart_t.TxD_busy)
 );
-
 // 串口硬件模块（保留原实例化）
 async_receiver #(.ClkFrequency(50000000), .Baud(9600)) ext_uart_r(
     .clk(clk),
@@ -117,7 +105,23 @@ async_transmitter #(.ClkFrequency(50000000), .Baud(9600)) ext_uart_t(
     .TxD_data()
 );
 
-// 5. 总线模块（组合逻辑，实现地址译码和访问优先级）
+// 新增：LED控制寄存器（32位，地址0xBFD00400）
+logic [`REG_BUS] led_reg;  // LED状态寄存器
+wire [`REG_BUS]  led_rdata = led_reg;  // LED读数据
+wire             led_we;   // LED写使能
+wire [`REG_BUS]  led_wdata; // LED写数据
+
+// LED寄存器读写逻辑（由总线驱动）
+always_ff @(posedge clk or negedge rst_n) begin
+    if (~rst_n) begin
+        led_reg <= 32'h00000000;  // 初始全灭
+    end else if (led_we) begin
+        led_reg <= led_wdata;     // 总线写使能时更新LED状态
+    end
+end
+assign led = led_reg;  // LED输出由寄存器驱动
+
+// 5. 总线模块（新增LED信号连接）
 bus bus0(
     // CPU接口
     .cpu_addr(is_if_stage ? iaddr : daddr),
@@ -141,11 +145,16 @@ bus bus0(
     // 串口接口
     .uart_wdata(uart_wdata),
     .uart_we(uart_we),
-    .uart_rdata(uart_rdata)
+    .uart_rdata(uart_rdata),
+    
+    // 新增：LED接口
+    .led_wdata(led_wdata),
+    .led_we(led_we),
+    .led_rdata(led_rdata)
 );
 
 // 6. 取指阶段标记（区分取指/访存访问）
-wire is_if_stage = 1'b1; // 取指阶段访问时置1，访存阶段置0（由CPU核输出控制）
+wire is_if_stage = (iaddr >= 32'h80000000 && iaddr <= 32'h8000FFFF);  // 取指阶段仅访问.text段
 
 // 7. CPU核实例化（传入stall_if处理结构冒险）
 Loongarch32_Lite Loongarch32_Lite0(
@@ -168,5 +177,4 @@ Loongarch32_Lite Loongarch32_Lite0(
 // 数码管显示串口数据（示例）
 assign seg_wdata[0] = uart_rdata[3:0];
 assign seg_wdata[1] = uart_rdata[7:4];
-
 endmodule
